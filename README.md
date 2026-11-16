@@ -2,6 +2,8 @@
 
 Cinco prácticas de IoT con panel de control, tablero y ejemplos de mensajes MQTT. La interfaz usa HTML, JavaScript y MQTT.js sobre WebSockets seguros.
 
+Sitio publicado: [mqtt.cafeycodigo.org](https://mqtt.cafeycodigo.org).
+
 | Proyecto | Qué se practica | Cómo se ejecuta |
 | --- | --- | --- |
 | [Domótica y seguridad del hogar](guia.html#domotica-y-seguridad-del-hogar) | Comandos, confirmación de estado y alertas de sensores | Control, tablero y simulador web |
