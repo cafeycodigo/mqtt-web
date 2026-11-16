@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero | Operación de metro</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="metro" data-view="tablero">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#operacion-de-metro">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Operación de metro</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html" aria-current="page">Tablero</a>
+            <a href="control.html">Control</a>
+        </nav>
+        <div class="project-content">
+
+            <div class="main-grid">
+                <!-- Mapa del Recorrido -->
+                <div class="map-container">
+                    <h2>Mapa del Recorrido</h2>
+                    <div class="route-map" id="routeMap">
+                        <div class="route-line" id="routeLine"></div>
+                    <div class="station" id="station1" style="--station-position: 7%">E1</div>
+                    <div class="station" id="station2" style="--station-position: 25%">E2</div>
+                    <div class="station" id="station3" style="--station-position: 50%">E3</div>
+                    <div class="station" id="station4" style="--station-position: 75%">E4</div>
+                    <div class="station" id="station5" style="--station-position: 93%">E5</div>
+                        <div class="train" id="train">🚇</div>
+                    </div>
+                </div>
+
+                <!-- Panel de Información -->
+                <div class="info-panel">
+                    <!-- Estado del Tren -->
+                    <div class="info-card">
+                        <h3>Estado del Tren</h3>
+                        <div class="info-item">
+                            <span class="info-label">Velocidad:</span>
+                            <span class="info-value" id="velocidad">0 km/h</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ubicación:</span>
+                            <span class="info-value" id="ubicacion">Detenido</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Puertas:</span>
+                            <span class="info-value close" id="puertas">Cerradas</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Capacidad:</span>
+                            <span class="info-value" id="capacidad">0%</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Freno Emergencia:</span>
+                            <span class="info-value off" id="freno">Desactivado</span>
+                        </div>
+                    </div>
+
+                    <!-- Estado de la Estación -->
+                    <div class="info-card">
+                        <h3>Estado de la Estación</h3>
+                        <div class="info-item">
+                            <span class="info-label">Pasajeros:</span>
+                            <span class="info-value" id="pasajeros">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Luces:</span>
+                            <span class="info-value off" id="luces">Apagadas</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Alarma:</span>
+                            <span class="info-value off" id="alarma">Normal</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Flujo Entrada:</span>
+                            <span class="info-value" id="flujoEntrada">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Flujo Salida:</span>
+                            <span class="info-value" id="flujoSalida">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Sistema -->
+                    <div class="info-card">
+                        <h3>Sistema</h3>
+                        <div class="info-item">
+                            <span class="info-label">Modo:</span>
+                            <span class="info-value" id="modo">Normal</span>
+                        </div>
+                        <div id="alertas"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="logs-container">
+                <h3>Eventos recientes</h3>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_tren');
+
+        const estados = {
+            velocidad: 0,
+            ubicacion: 'estacion1',
+            puertas: 'close',
+            capacidad: 0,
+            freno: 'off',
+            pasajeros: 0,
+            luces: 'off',
+            alarma: 'normal',
+            flujoEntrada: 0,
+            flujoSalida: 0,
+            modo: 'normal'
+        };
+
+        const estaciones = ['estacion1', 'estacion2', 'estacion3', 'estacion4', 'estacion5'];
+        const posicionesEstaciones = Array.from(document.querySelectorAll(".station"), (station) =>
+            Number.parseFloat(station.style.getPropertyValue("--station-position"))
+        );
+
+        client.on("connect", () => {
+            console.log("Dashboard conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            
+            // Suscribirse a todos los topics
+            const topics = [
+                "metro/tren1/velocidad",
+                "metro/tren1/ubicacion",
+                "metro/tren1/puertas",
+                "metro/tren1/capacidad",
+                "metro/tren1/freno_emergencia",
+                "metro/estacion1/pasajeros",
+                "metro/estacion1/luces",
+                "metro/estacion1/alarma",
+                "metro/estacion1/flujos",
+                "metro/sistema/modo"
+            ];
+            
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err, granted) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic} - ${err.message}`, "error");
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`, granted);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100); // Espaciar suscripciones 100ms
+            });
+            
+            // También suscribirse usando wildcard para capturar todos los mensajes
+            setTimeout(() => {
+                client.subscribe("metro/#", { qos: 1 }, (err) => {
+                    if (!err) {
+                        console.log("✅ Suscrito a wildcard: metro/#");
+                        addLog("✅ Wildcard: metro/#", "success");
+                    } else {
+                        console.error("❌ Error wildcard:", err);
+                    }
+                });
+            }, topics.length * 100 + 200);
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            console.log("Cliente desconectado");
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("reconnect", () => {
+            console.log("Reconectando...");
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            addLog("🔄 Intentando reconectar...", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`Mensaje recibido: ${topic} = ${msg}`);
+            
+            updateEstado(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+        });
+
+        function updateEstado(topic, value) {
+            if (topic === "metro/tren1/velocidad") {
+                estados.velocidad = parseInt(value);
+                document.getElementById("velocidad").textContent = value + " km/h";
+            } else if (topic === "metro/tren1/ubicacion") {
+                estados.ubicacion = value;
+                document.getElementById("ubicacion").textContent = value;
+                actualizarPosicionTren(value);
+            } else if (topic === "metro/tren1/puertas") {
+                estados.puertas = value;
+                const puertasEl = document.getElementById("puertas");
+                puertasEl.textContent = value === 'open' ? 'Abiertas' : 'Cerradas';
+                puertasEl.className = 'info-value ' + (value === 'open' ? 'open' : 'close');
+            } else if (topic === "metro/tren1/capacidad") {
+                estados.capacidad = parseInt(value);
+                document.getElementById("capacidad").textContent = value + "%";
+            } else if (topic === "metro/tren1/freno_emergencia") {
+                estados.freno = value;
+                const frenoEl = document.getElementById("freno");
+                frenoEl.textContent = value === 'on' ? 'ACTIVADO' : 'Desactivado';
+                frenoEl.className = 'info-value ' + (value === 'on' ? 'emergency' : 'off');
+            } else if (topic === "metro/estacion1/pasajeros") {
+                estados.pasajeros = parseInt(value);
+                document.getElementById("pasajeros").textContent = value;
+            } else if (topic === "metro/estacion1/luces") {
+                estados.luces = value;
+                const lucesEl = document.getElementById("luces");
+                lucesEl.textContent = value === 'on' ? 'Encendidas' : 'Apagadas';
+                lucesEl.className = 'info-value ' + (value === 'on' ? 'on' : 'off');
+            } else if (topic === "metro/estacion1/alarma") {
+                estados.alarma = value;
+                const alarmaEl = document.getElementById("alarma");
+                alarmaEl.textContent = value === 'normal' ? 'Normal' : value.toUpperCase();
+                alarmaEl.className = 'info-value ' + (value === 'normal' ? 'off' : 'emergency');
+                mostrarAlerta(value);
+            } else if (topic === "metro/estacion1/flujos") {
+                const flujos = value.split(',');
+                if (flujos.length >= 2) {
+                    estados.flujoEntrada = parseInt(flujos[0].split(':')[1] || 0);
+                    estados.flujoSalida = parseInt(flujos[1].split(':')[1] || 0);
+                    document.getElementById("flujoEntrada").textContent = estados.flujoEntrada;
+                    document.getElementById("flujoSalida").textContent = estados.flujoSalida;
+                }
+            } else if (topic === "metro/sistema/modo") {
+                estados.modo = value;
+                const modoText = {
+                    'hora_punta': 'Hora Punta',
+                    'baja_demanda': 'Baja Demanda',
+                    'normal': 'Normal'
+                };
+                document.getElementById("modo").textContent = modoText[value] || value;
+            }
+        }
+
+        function actualizarPosicionTren(ubicacion) {
+            const estaciones = [...ubicacion.matchAll(/estacion([1-5])(?!\d)/g)].map((match) => Number(match[1]));
+            const [primera = 1, segunda] = estaciones;
+            let posicion = posicionesEstaciones[primera - 1];
+            if (ubicacion.includes("entre") && segunda) {
+                posicion = (posicion + posicionesEstaciones[segunda - 1]) / 2;
+                activarEstacion(null);
+            } else {
+                activarEstacion(primera);
+            }
+            document.getElementById("train").style.left = posicion + "%";
+        }
+
+        function activarEstacion(numero) {
+            // Desactivar todas las estaciones
+            for (let i = 1; i <= 5; i++) {
+                const station = document.getElementById(`station${i}`);
+                station.classList.remove('active');
+            }
+            // Activar la estación actual
+            const station = document.getElementById(`station${numero}`);
+            if (station) {
+                station.classList.add('active');
+            }
+        }
+
+        function mostrarAlerta(tipo) {
+            const alertasDiv = document.getElementById("alertas");
+            if (tipo !== 'normal') {
+                alertasDiv.innerHTML = `<div class="alert">⚠️ ALERTA: ${tipo.toUpperCase()}</div>`;
+            } else {
+                alertasDiv.innerHTML = '';
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsContainer.children.length > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>
+

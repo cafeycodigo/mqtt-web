@@ -104,6 +104,6 @@ Aquí tienes una lista exhaustiva de 60 ideas de proyectos IoT divididas por cat
 
 1.  **Reutiliza tu Framework**: Usa la estructura `dashboard.html` / `control.html` que ya dominas.
 2.  **Simulación Primero**: No necesitas hardware real. Crea "gemelos digitales" en JS que simulen ser los sensores.
-3.  **Gamificación**: Añade logros o puntuaciones (como en "Batalla Naval") incluso a apps serias para hacerlas atractivas.
+3.  **Gamificación**: Añade logros o puntuaciones incluso a apps serias para hacerlas atractivas.
 4.  **Dashboard Unificado**: Considera crear un "Centro de Mando" que agrupe varios de estos proyectos (ej. Smart City Dashboard).
 5.  **Interacción Física**: Si tienes un Arduino/ESP32, conecta botones y LEDs reales para darle magia a la pantalla.

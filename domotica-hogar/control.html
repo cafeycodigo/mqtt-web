@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control | Domótica y seguridad del hogar</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="hogar" data-view="control">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#domotica-y-seguridad-del-hogar">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Domótica y seguridad del hogar</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html">Tablero</a>
+            <a href="control.html" aria-current="page">Control</a>
+        </nav>
+        <div id="notification" class="notification" role="status"></div>
+        <div class="project-content">
+
+            <div class="controls-grid">
+                <!-- Living - Luz -->
+                <div class="control-card">
+                    <h3>Living - Luz</h3>
+                    <button class="btn btn-on" onclick="controlLuz('on')">Encender</button>
+                    <button class="btn btn-off" onclick="controlLuz('off')">Apagar</button>
+                </div>
+
+                <!-- Puerta Principal -->
+                <div class="control-card">
+                    <h3>Puerta Principal</h3>
+                    <button class="btn btn-open" onclick="controlPuerta('open')">Abrir</button>
+                    <button class="btn btn-close" onclick="controlPuerta('close')">Cerrar</button>
+                </div>
+
+                <!-- Alarma -->
+                <div class="control-card">
+                    <h3>Alarma</h3>
+                    <button class="btn btn-on" onclick="controlAlarma('enabled')">Activar</button>
+                    <button class="btn btn-off" onclick="controlAlarma('disabled')">Desactivar</button>
+                </div>
+
+                <!-- Temperatura -->
+                <div class="control-card">
+                    <h3>Termostato</h3>
+                    <div class="slider-container">
+                        <input type="range" min="16" max="30" value="22" class="slider" id="tempSlider" aria-label="Temperatura deseada" oninput="updateTemp(this.value)">
+                        <div class="slider-value" id="tempValue">22°C</div>
+                    </div>
+                    <button class="btn btn-on" onclick="setTemperatura()">Establecer</button>
+                </div>
+
+                <!-- Eventos Simulados -->
+                <div class="control-card">
+                    <h3>Eventos Simulados</h3>
+                    <select class="event-select" id="eventSelect" aria-label="Evento a simular">
+                        <option value="">Seleccionar evento...</option>
+                        <option value="incendio">Incendio</option>
+                        <option value="movimiento">Movimiento Detectado</option>
+                        <option value="persona_llegando">Persona Llegando</option>
+                        <option value="gas">Fuga de Gas</option>
+                    </select>
+                    <button class="btn btn-on" onclick="triggerEvent()">Disparar Evento</button>
+                </div>
+
+                <!-- Cocina - Luz -->
+                <div class="control-card">
+                    <h3>Cocina - Luz</h3>
+                    <button class="btn btn-on" onclick="controlLuzCocina('on')">Encender</button>
+                    <button class="btn btn-off" onclick="controlLuzCocina('off')">Apagar</button>
+                </div>
+
+                <!-- Dormitorio - Luz -->
+                <div class="control-card">
+                    <h3>Dormitorio - Luz</h3>
+                    <button class="btn btn-on" onclick="controlLuzDormitorio('on')">Encender</button>
+                    <button class="btn btn-off" onclick="controlLuzDormitorio('off')">Apagar</button>
+                </div>
+
+                <!-- TV Living -->
+                <div class="control-card">
+                    <h3>TV Living</h3>
+                    <button class="btn btn-on" onclick="controlTV('on')">Encender</button>
+                    <button class="btn btn-off" onclick="controlTV('off')">Apagar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_hogar');
+
+        client.on("connect", () => {
+            console.log("Panel de Control conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = "notification show " + tipo;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, value, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        function controlLuz(state) {
+            const accion = state === 'on' ? 'Encendiendo luz del living' : 'Apagando luz del living';
+            publicarConConfirmacion("hogar/living/luz/set", state, accion);
+        }
+
+        function controlLuzCocina(state) {
+            const accion = state === 'on' ? 'Encendiendo luz de la cocina' : 'Apagando luz de la cocina';
+            publicarConConfirmacion("hogar/cocina/luz/set", state, accion);
+        }
+
+        function controlLuzDormitorio(state) {
+            const accion = state === 'on' ? 'Encendiendo luz del dormitorio' : 'Apagando luz del dormitorio';
+            publicarConConfirmacion("hogar/dormitorio/luz/set", state, accion);
+        }
+
+        function controlPuerta(state) {
+            const accion = state === 'open' ? 'Abriendo puerta principal' : 'Cerrando puerta principal';
+            publicarConConfirmacion("hogar/puerta/principal/set", state, accion);
+        }
+
+        function controlAlarma(state) {
+            const accion = state === 'enabled' ? 'Activando alarma' : 'Desactivando alarma';
+            publicarConConfirmacion("hogar/alarma/set", state, accion);
+        }
+
+        function updateTemp(value) {
+            document.getElementById("tempValue").textContent = value + "°C";
+        }
+
+        function setTemperatura() {
+            const temp = document.getElementById("tempSlider").value;
+            publicarConConfirmacion("hogar/clima/temperatura/set", temp, `Temperatura establecida a ${temp}°C`);
+        }
+
+        function controlTV(state) {
+            const accion = state === 'on' ? 'Encendiendo TV' : 'Apagando TV';
+            publicarConConfirmacion("hogar/living/tv/set", state, accion);
+        }
+
+        function triggerEvent() {
+            const event = document.getElementById("eventSelect").value;
+            if (event) {
+                const eventos = {
+                    'incendio': '🔥 Simulando incendio',
+                    'movimiento': '👤 Simulando movimiento',
+                    'persona_llegando': '🚶 Simulando persona llegando',
+                    'gas': '⛽ Simulando fuga de gas'
+                };
+                publicarConConfirmacion("hogar/evento/simulacion/set", event, eventos[event] || 'Evento disparado');
+                document.getElementById("eventSelect").value = "";
+            } else {
+                mostrarNotificacion("⚠️ Selecciona un evento primero", "error");
+            }
+        }
+    </script>
+</body>
+</html>
+

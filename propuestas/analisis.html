@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Análisis de juego | Laboratorio MQTT</title>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="analisis.css">
+    <script defer src="datos.js"></script>
+    <script defer src="maquetas.js"></script>
+    <script defer src="analisis.js"></script>
+</head>
+<body>
+    <header class="wrap top">
+        <a href="../index.html#propuestas-titulo">← Propuestas de juegos</a>
+    </header>
+    <main class="wrap">
+        <header class="intro">
+            <h1 id="title">Análisis de propuesta</h1>
+            <p id="summary" hidden></p>
+            <a class="play-link" id="play-link" hidden>Abrir juego</a>
+        </header>
+        <div id="proposal" hidden>
+            <div class="layout">
+                <figure class="model" aria-labelledby="model-caption">
+                    <div class="stage" id="stage">
+                        <p role="status" id="model-status">Cargando la maqueta 3D…</p>
+                        <canvas id="model" tabindex="0" aria-describedby="model-caption" hidden></canvas>
+                    </div>
+                    <figcaption id="model-caption">Arrastra la maqueta o usa las flechas para girar. Acerca con la rueda o los botones.</figcaption>
+                    <div class="model-controls" id="model-controls" hidden>
+                        <button type="button" id="zoom-in">Acercar</button>
+                        <button type="button" id="zoom-out">Alejar</button>
+                        <button type="button" id="reset-view">Restablecer vista</button>
+                    </div>
+                </figure>
+                <div class="rules">
+                    <h2>Cómo se jugaría</h2>
+                    <dl>
+                        <div><dt>Jugadores</dt><dd id="players"></dd></div>
+                        <div><dt>Controles</dt><dd id="controls"></dd></div>
+                        <div><dt>Objetivo</dt><dd id="objective"></dd></div>
+                        <div><dt>Qué muestra la maqueta</dt><dd id="model-description"></dd></div>
+                    </dl>
+                </div>
+            </div>
+            <section class="messages" aria-labelledby="messages-title">
+                <h2 id="messages-title">Mensajes MQTT</h2>
+                <div class="packets">
+                    <section>
+                        <h3>Tablero → juego</h3>
+                        <p><code id="input-topic"></code></p>
+                        <pre id="input-payload"></pre>
+                    </section>
+                    <section>
+                        <h3>Juego → tablero · campos principales</h3>
+                        <p><code id="state-topic"></code></p>
+                        <pre id="state-payload"></pre>
+                    </section>
+                </div>
+                <p id="design-note" class="design-note"></p>
+            </section>
+        </div>
+        <p id="missing" hidden>Elige un juego en la <a href="../index.html#propuestas-titulo">lista de propuestas</a>.</p>
+    </main>
+</body>
+</html>

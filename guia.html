@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de prácticas | Laboratorio MQTT</title>
+    <style>
+        body { margin: 2rem auto; padding: 0 1rem; max-width: 52rem; font: 1rem/1.6 system-ui, sans-serif; }
+        section { margin-block: 2.5rem; }
+        code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+    <nav><a href="index.html">Volver al laboratorio</a></nav>
+    <main>
+        <h1>Guía de prácticas MQTT</h1>
+        <p>Abre el tablero y el control en pestañas distintas. Espera a que ambos indiquen conexión. Para Domótica y Metro, abre además el simulador y espera el mensaje «Listo para recibir comandos».</p>
+        <p>Para ejecutar el sitio localmente, usa <code>python -m http.server 8000</code> desde la raíz y abre <a href="http://localhost:8000/">localhost:8000</a>. El navegador necesita acceso al broker por WSS y a las bibliotecas que cargan las páginas.</p>
+        <p>Para una práctica aislada, configura un broker de laboratorio y usuarios de prueba en <code>env/credential.js</code>. Los mensajes usan QoS 1. La confirmación de publicación indica que el broker recibió el mensaje. En los ejercicios con actuadores, el mensaje de estado es el que confirma el resultado simulado.</p>
+
+        <section id="domotica-y-seguridad-del-hogar">
+            <h2>Domótica y seguridad del hogar</h2>
+            <p><a href="domotica-hogar/control.html">Control</a> · <a href="domotica-hogar/dashboard.html">Tablero</a> · <a href="simulador.html?proyecto=hogar">Simulador</a></p>
+            <ol>
+                <li>En el control, enciende la luz del living. El panel publica <code>on</code> en <code>hogar/living/luz/set</code>.</li>
+                <li>El simulador publica <code>on</code> en <code>hogar/living/luz/state</code>. Comprueba que el tablero registra ese topic y muestra la luz encendida.</li>
+                <li>Selecciona el evento de incendio. El simulador publica <code>alto</code> en <code>hogar/sensor/humo</code> y el tablero muestra la alerta de humo.</li>
+            </ol>
+            <p>El simulador también responde a los controles de luces de cocina y dormitorio, puerta principal, alarma, TV y temperatura, y a los eventos de gas y movimiento.</p>
+        </section>
+
+        <section id="operacion-de-metro">
+            <h2>Operación de metro</h2>
+            <p><a href="operacion-metro/control.html">Control</a> · <a href="operacion-metro/dashboard.html">Tablero</a> · <a href="simulador.html?proyecto=tren">Simulador</a></p>
+            <ol>
+                <li>Pulsa <strong>Iniciar Recorrido</strong>. El panel publica <code>40</code> en <code>metro/tren1/velocidad/set</code>.</li>
+                <li>El simulador publica <code>40</code> en <code>metro/tren1/velocidad</code>. El tablero debe mostrar 40 km/h.</li>
+                <li>Pulsa <strong>Freno de Emergencia</strong>. El simulador publica <code>on</code> en <code>metro/tren1/freno_emergencia</code> y <code>0</code> en <code>metro/tren1/velocidad</code>.</li>
+            </ol>
+            <p>El simulador también responde a puertas, luces, modo operativo y alarmas de incendio y evacuación. El movimiento entre estaciones y el conteo de pasajeros requieren un publicador de telemetría.</p>
+        </section>
+
+        <section id="alimentacion-y-agua-para-mascotas">
+            <h2>Alimentación y agua para mascotas</h2>
+            <p><a href="alimentacion-mascotas/control.html">Control</a> · <a href="alimentacion-mascotas/dashboard.html">Tablero</a></p>
+            <ol>
+                <li>Introduce 80 g en <strong>Nivel de Comida</strong> y pulsa <strong>Actualizar Nivel</strong>. El panel publica <code>80</code> en <code>mascotas/cristobal/comida/nivel</code>.</li>
+                <li>Comprueba que el tablero muestra 80 g y la alerta de nivel bajo. Al pulsar <strong>Resetear (500g)</strong>, el tablero debe volver a indicar un nivel adecuado.</li>
+                <li>Para revisar un comando, pulsa <strong>Dispensar Comida Ahora</strong>. El panel publica los gramos en <code>mascotas/cristobal/dispensador/activar</code> y un estado simulado en <code>mascotas/cristobal/dispensador/estado</code>.</li>
+            </ol>
+        </section>
+
+        <section id="seguimiento-de-entregas">
+            <h2>Seguimiento de entregas</h2>
+            <p><a href="seguimiento-entregas/control.html">Control</a> · <a href="seguimiento-entregas/dashboard.html">Tablero</a></p>
+            <ol>
+                <li>Pulsa <strong>Simular Entrega</strong>. El panel publica un pedido JSON en <code>delivery/order/new</code>. Debe aparecer como pendiente en el tablero.</li>
+                <li>Observa el cambio a en camino tras <code>delivery/rider/assign</code> y el cambio a entregado tras <code>delivery/order/status</code>.</li>
+                <li>Comprueba que el <code>orderId</code> de los eventos de asignación y estado coincide con el <code>id</code> del pedido inicial.</li>
+            </ol>
+        </section>
+
+        <section id="buzon-con-aviso-de-correo">
+            <h2>Buzón con aviso de correo</h2>
+            <p><a href="buzon-correo/control.html">Control</a> · <a href="buzon-correo/dashboard.html">Tablero</a></p>
+            <ol>
+                <li>Pulsa <strong>Detectar Correo</strong>. El control publica <code>detected</code> en <code>smartpost/buzon/detection</code>, <code>full</code> en <code>smartpost/buzon/state</code> y la hora ISO 8601 en <code>smartpost/buzon/timestamp</code>.</li>
+                <li>Comprueba que el tablero muestra el aviso y la hora del último evento.</li>
+                <li>Pulsa <strong>Marcar como Vacío</strong>. El panel publica <code>empty</code> en <code>smartpost/buzon/state</code> y el tablero actualiza el estado.</li>
+            </ol>
+        </section>
+
+        <section id="cumbre">
+            <h2>Cumbre</h2>
+            <p><a href="cumbre/game.html">Juego</a> · <a href="cumbre/dashboard.html">Tablero de control</a></p>
+            <p>Abre el juego y pulsa <strong>Abrir tablero</strong>. Ambas páginas se conectan automáticamente a <code>wss://broker.hivemq.com:8884/mqtt</code> sin usuario ni contraseña. El enlace del tablero incluye la sala. Para jugar desde otro dispositivo, abre el juego desde una dirección del sitio accesible en ambos dispositivos y comparte el enlace del tablero.</p>
+            <p>Mantén pulsada una dirección y usa <strong>Saltar</strong> para cruzar los huecos. Si necesitas jugar en el mismo navegador sin broker, selecciona <strong>Local</strong> en <strong>Conexión y sala</strong>, pulsa <strong>Conectar</strong> y abre la otra pantalla desde el enlace de esa página.</p>
+            <p>El juego usa QoS 0 y publica sin retención. Sustituye <code>&lt;sala&gt;</code> por el nombre que aparece en <strong>Conexión y sala</strong>.</p>
+            <ul>
+                <li><code>plataformas/&lt;sala&gt;/control</code> lleva un JSON como <code>{"direction":1,"jump":true,"reset":false}</code>. La dirección es <code>-1</code>, <code>0</code> o <code>1</code>. Mientras mantienes una dirección, el tablero la renueva cada 100 ms. El juego deja de aplicarla después de 420 ms sin órdenes.</li>
+                <li><code>plataformas/&lt;sala&gt;/estado</code> lleva un JSON como <code>{"gems":2,"falls":1,"won":false}</code>. El tablero muestra las balizas, las caídas y si se alcanzó la meta.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

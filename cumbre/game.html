@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbf5e5">
+    <title>Cumbre | Juego de plataformas</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="connection.js"></script>
+    <script defer src="game.js"></script>
+</head>
+<body>
+    <nav class="shell"><a href="../index.html">← Laboratorio MQTT</a><a data-peer href="dashboard.html" target="_blank" rel="noopener">Abrir tablero ↗</a></nav>
+    <main class="shell">
+        <header class="page-header">
+            <div>
+                <h1>Cumbre</h1>
+                <p>Salta entre plataformas y llega a la bandera.</p>
+            </div>
+            <dl class="scoreboard">
+                <div><dt>Balizas</dt><dd id="gems">0 / 5</dd></div>
+                <div><dt>Caídas</dt><dd id="falls">0</dd></div>
+            </dl>
+        </header>
+        <div class="game-screen">
+            <canvas id="world" width="960" height="480" aria-label="Un explorador salta por un recorrido de plataformas hasta la bandera."></canvas>
+            <div id="finished" class="finish" hidden>
+                <h2>¡Llegaste a la cima!</h2>
+                <p id="result"></p>
+                <button id="play-again" type="button">Volver a jugar</button>
+            </div>
+        </div>
+        <div class="screen-footer">
+            <p id="game-status" role="status">Esperando el tablero</p>
+            <p>Coloca el juego y el tablero lado a lado.</p>
+        </div>
+        <section id="connection" aria-label="Conexión"></section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control | Buzón con aviso de correo</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="buzon" data-view="control">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#buzon-con-aviso-de-correo">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Buzón con aviso de correo</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html">Tablero</a>
+            <a href="control.html" aria-current="page">Control</a>
+        </nav>
+        <div id="notification" class="notification" role="status"></div>
+        <div class="project-content">
+            <div class="info-box">
+                <h3>Información</h3>
+                <p>Este panel permite simular la detección de correo en el buzón inteligente. Usa los botones para cambiar el estado del buzón y simular eventos de detección.</p>
+            </div>
+
+            <div class="control-section">
+                <h2>Simulación de Detección</h2>
+                <div class="control-grid">
+                    <button class="btn btn-detect" onclick="simulateDetection()">
+                        Detectar Correo
+                    </button>
+                    <button class="btn btn-empty" onclick="setState('empty')">
+                        Marcar como Vacío
+                    </button>
+                    <button class="btn btn-full" onclick="setState('full')">
+                        Marcar como Lleno
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h2>Estado del Buzón</h2>
+                <div class="control-grid">
+                    <button class="btn btn-empty" onclick="publishState('empty')">
+                        Vacío
+                    </button>
+                    <button class="btn btn-full" onclick="publishState('full')">
+                        Con Correo
+                    </button>
+                </div>
+            </div>
+
+            <div class="logs-container">
+                <h3>Eventos recientes</h3>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_oscar');
+        const statusEl = document.getElementById('status');
+        const notification = document.getElementById('notification');
+        const logsEl = document.getElementById('logs');
+
+        // Función para mostrar notificación
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = `notification ${isError ? 'error' : ''} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString('es-ES');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsEl.insertBefore(logEntry, logsEl.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsEl.children.length > 50) {
+                logsEl.removeChild(logsEl.lastChild);
+            }
+        }
+
+        // Función para publicar mensaje MQTT
+        function publishMessage(topic, message, description) {
+            try {
+                client.publish(topic, message, { qos: 1 }, (err) => {
+                    if (err) {
+                        addLog(`❌ Error al publicar en ${topic}: ${err.message}`, 'error');
+                        showNotification(`Error: ${err.message}`, true);
+                    } else {
+                        addLog(`✅ ${description}`, 'info');
+                        showNotification(description);
+                    }
+                });
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                showNotification(`Error: ${error.message}`, true);
+            }
+        }
+
+        // Simular detección de correo
+        function simulateDetection() {
+            const timestamp = new Date().toISOString();
+            
+            // Publicar detección
+            publishMessage(
+                'smartpost/buzon/detection',
+                'detected',
+                'Detección de correo simulada'
+            );
+            
+            // Publicar estado como lleno
+            publishMessage(
+                'smartpost/buzon/state',
+                'full',
+                'Estado actualizado: CON CORREO'
+            );
+            
+            // Publicar timestamp
+            publishMessage(
+                'smartpost/buzon/timestamp',
+                timestamp,
+                'Timestamp actualizado'
+            );
+        }
+
+        // Establecer estado manualmente
+        function setState(state) {
+            const stateText = state === 'empty' ? 'VACÍO' : 'CON CORREO';
+            publishMessage(
+                'smartpost/buzon/state',
+                state,
+                `Estado establecido: ${stateText}`
+            );
+            
+            if (state === 'full') {
+                const timestamp = new Date().toISOString();
+                publishMessage(
+                    'smartpost/buzon/timestamp',
+                    timestamp,
+                    'Timestamp actualizado'
+                );
+            }
+        }
+
+        // Publicar estado directamente
+        function publishState(state) {
+            const stateText = state === 'empty' ? 'VACÍO' : 'CON CORREO';
+            publishMessage(
+                'smartpost/buzon/state',
+                state,
+                `Estado publicado: ${stateText}`
+            );
+        }
+
+        // Eventos del cliente MQTT
+        client.on('connect', () => {
+            statusEl.textContent = '✅ Conectado';
+            statusEl.className = 'status connected';
+            addLog('✅ Conectado al broker MQTT', 'info');
+            showNotification('Conectado al broker MQTT');
+        });
+
+        client.on('error', (error) => {
+            statusEl.textContent = '❌ Error de conexión';
+            statusEl.className = 'status disconnected';
+            addLog(`❌ Error MQTT: ${error.message}`, 'error');
+            showNotification(`Error: ${error.message}`, true);
+        });
+
+        client.on('offline', () => {
+            statusEl.textContent = '⚠️ Desconectado';
+            statusEl.className = 'status disconnected';
+            addLog('⚠️ Cliente desconectado', 'error');
+        });
+
+        client.on('reconnect', () => {
+            statusEl.textContent = '🔄 Reconectando...';
+            statusEl.className = 'status disconnected';
+            addLog('🔄 Intentando reconectar...', 'info');
+        });
+    </script>
+</body>
+</html>
+

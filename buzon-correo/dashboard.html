@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero | Buzón con aviso de correo</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="buzon" data-view="tablero">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#buzon-con-aviso-de-correo">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Buzón con aviso de correo</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html" aria-current="page">Tablero</a>
+            <a href="control.html">Control</a>
+        </nav>
+        <div id="notification" class="notification" role="status">Correo detectado en el buzón.</div>
+        <div class="project-content">
+            <div class="main-card" id="mailboxCard">
+                <div class="mailbox-icon" id="mailboxIcon" aria-hidden="true">📬</div>
+                <div>
+                    <div class="stat-label">Estado del buzón</div>
+                    <div class="mailbox-status empty" id="mailboxStatus">VACÍO</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total de Detecciones</div>
+                    <div class="stat-value" id="totalDetections">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Última Detección</div>
+                    <div class="stat-value" id="lastDetectionTime">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="timestamp-label">Última actualización</div>
+                    <div class="timestamp-value mt-2" id="lastUpdate">Esperando datos...</div>
+                </div>
+            </div>
+
+            <div class="logs-container">
+                <h3>Eventos recientes</h3>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_oscar');
+        let totalDetections = 0;
+        let mailboxState = 'empty';
+        let lastDetectionTime = null;
+
+        // Elementos del DOM
+        const statusEl = document.getElementById('status');
+        const mailboxIcon = document.getElementById('mailboxIcon');
+        const mailboxStatus = document.getElementById('mailboxStatus');
+        const notification = document.getElementById('notification');
+        const totalDetectionsEl = document.getElementById('totalDetections');
+        const lastDetectionTimeEl = document.getElementById('lastDetectionTime');
+        const lastUpdateEl = document.getElementById('lastUpdate');
+        const logsEl = document.getElementById('logs');
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString('es-ES');
+            logEntry.innerHTML = `
+                <span>${message}</span>
+                <span class="log-timestamp">${timestamp}</span>
+            `;
+            logsEl.insertBefore(logEntry, logsEl.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsEl.children.length > 50) {
+                logsEl.removeChild(logsEl.lastChild);
+            }
+        }
+
+        // Función para mostrar notificación
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Función para actualizar el estado del buzón
+        function updateMailboxState(state) {
+            mailboxState = state;
+            const isFull = state === 'full' || state === 'lleno' || state === '1' || state === true;
+            
+            if (isFull) {
+                mailboxIcon.textContent = '📮';
+                mailboxIcon.className = 'mailbox-icon full';
+                mailboxStatus.textContent = 'CON CORREO';
+                mailboxStatus.className = 'mailbox-status full';
+                
+                // Incrementar contador y mostrar notificación solo si cambió de vacío a lleno
+                if (mailboxState !== 'full') {
+                    totalDetections++;
+                    totalDetectionsEl.textContent = totalDetections;
+                    showNotification();
+                    addLog('📬 Correo detectado en el buzón', 'detection');
+                }
+            } else {
+                mailboxIcon.textContent = '📬';
+                mailboxIcon.className = 'mailbox-icon empty';
+                mailboxStatus.textContent = 'VACÍO';
+                mailboxStatus.className = 'mailbox-status empty';
+            }
+        }
+
+        // Función para actualizar timestamp
+        function updateTimestamp(timestamp) {
+            if (timestamp) {
+                const date = new Date(timestamp);
+                lastUpdateEl.textContent = date.toLocaleString('es-ES');
+                lastDetectionTime = date;
+                lastDetectionTimeEl.textContent = date.toLocaleTimeString('es-ES');
+            } else {
+                const now = new Date();
+                lastUpdateEl.textContent = now.toLocaleString('es-ES');
+                lastDetectionTimeEl.textContent = now.toLocaleTimeString('es-ES');
+            }
+        }
+
+        // Eventos del cliente MQTT
+        client.on('connect', () => {
+            statusEl.textContent = '✅ Conectado';
+            statusEl.className = 'status connected';
+            addLog('✅ Conectado al broker MQTT', 'info');
+            
+            // Suscribirse a los topics
+            client.subscribe('smartpost/buzon/state', { qos: 1 }, (err) => {
+                if (err) {
+                    addLog(`❌ Error al suscribirse a smartpost/buzon/state: ${err.message}`, 'error');
+                } else {
+                    addLog('📡 Suscrito a: smartpost/buzon/state', 'info');
+                }
+            });
+            
+            client.subscribe('smartpost/buzon/detection', { qos: 1 }, (err) => {
+                if (err) {
+                    addLog(`❌ Error al suscribirse a smartpost/buzon/detection: ${err.message}`, 'error');
+                } else {
+                    addLog('📡 Suscrito a: smartpost/buzon/detection', 'info');
+                }
+            });
+            
+            client.subscribe('smartpost/buzon/timestamp', { qos: 1 }, (err) => {
+                if (err) {
+                    addLog(`❌ Error al suscribirse a smartpost/buzon/timestamp: ${err.message}`, 'error');
+                } else {
+                    addLog('📡 Suscrito a: smartpost/buzon/timestamp', 'info');
+                }
+            });
+        });
+
+        client.on('error', (error) => {
+            statusEl.textContent = '❌ Error de conexión';
+            statusEl.className = 'status disconnected';
+            addLog(`❌ Error MQTT: ${error.message}`, 'error');
+        });
+
+        client.on('offline', () => {
+            statusEl.textContent = '⚠️ Desconectado';
+            statusEl.className = 'status disconnected';
+            addLog('⚠️ Cliente desconectado', 'error');
+        });
+
+        client.on('reconnect', () => {
+            statusEl.textContent = '🔄 Reconectando...';
+            statusEl.className = 'status disconnected';
+            addLog('🔄 Intentando reconectar...', 'info');
+        });
+
+        // Procesar mensajes MQTT
+        client.on('message', (topic, message) => {
+            const value = message.toString();
+            const timestamp = new Date().toISOString();
+            
+            console.log(`[MQTT] Topic: ${topic}, Message: ${value}`);
+            
+            if (topic === 'smartpost/buzon/state') {
+                updateMailboxState(value);
+                updateTimestamp();
+                addLog(`📊 Estado actualizado: ${value}`, 'info');
+            } else if (topic === 'smartpost/buzon/detection') {
+                totalDetections++;
+                totalDetectionsEl.textContent = totalDetections;
+                updateMailboxState('full');
+                updateTimestamp();
+                showNotification();
+                addLog('📬 ¡Correo detectado!', 'detection');
+            } else if (topic === 'smartpost/buzon/timestamp') {
+                updateTimestamp(value);
+                addLog(`⏰ Timestamp actualizado: ${value}`, 'info');
+            }
+        });
+
+        // Actualizar timestamp cada segundo cuando hay datos
+        setInterval(() => {
+            if (lastDetectionTime) {
+                const now = new Date();
+                lastUpdateEl.textContent = now.toLocaleString('es-ES');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+

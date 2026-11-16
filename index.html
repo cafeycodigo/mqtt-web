@@ -1,379 +1,223 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Projects Hub | Bemtorres</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fafafa;
-            color: #171717;
-        }
-
-        .project-card {
-            transition: all 0.3s ease;
-            border: 1px solid #e5e5e5;
-        }
-
-        .project-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-            border-color: #000;
-        }
-
-        .btn-minimal {
-            border: 1px solid #e5e5e5;
-            transition: all 0.2s;
-        }
-
-        .btn-minimal:hover {
-            background: #000;
-            color: #fff;
-            border-color: #000;
-        }
-    </style>
+    <title>Laboratorio MQTT | Bemtorres</title>
+    <link rel="stylesheet" href="ui/tokens.css">
+    <link rel="stylesheet" href="ui/portada.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Instrument+Sans:wght@600;700;800&amp;display=swap">
 </head>
-
-<body class="min-h-screen flex flex-col">
-
-    <!-- Hero Section -->
-    <header class="py-20 px-6 border-b border-gray-100 bg-white">
-        <div class="max-w-6xl mx-auto text-center">
-            <div
-                class="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider uppercase bg-black text-white rounded-full">
-                Portfolio 2025
-            </div>
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-gray-900">
-                IoT Projects Hub
-            </h1>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto font-light">
-                Una colección de soluciones conectadas, dashboards en tiempo real y experiencias interactivas.
-            </p>
-            <div class="mt-8 text-sm font-medium text-gray-400">
-                Creado por <span class="text-black">Bemtorres</span>
-            </div>
+<body>
+    <header class="masthead">
+        <div class="container">
+            <nav aria-label="Portada">
+                <a href="#proyectos">Proyectos IoT</a>
+                <a href="#juegos">Juegos</a>
+                <a href="guia.html">Guía MQTT</a>
+            </nav>
+            <h1>Laboratorio MQTT</h1>
+            <p>Practica control remoto, telemetría y eventos con proyectos IoT y juegos.</p>
         </div>
     </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow py-16 px-6">
-        <div class="max-w-6xl mx-auto">
-
-            <!-- Featured Projects Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-
-                <!-- Hogar Inteligente -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">01</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Hogar Inteligente</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Control total de iluminación, temperatura y
-                        seguridad doméstica.</p>
-                    <div class="flex gap-3">
-                        <a href="hogar/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="hogar/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Metro Inteligente -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-subway"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">02</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Metro Inteligente</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Sistema de monitoreo de transporte público y
-                        gestión de estaciones.</p>
-                    <div class="flex gap-3">
-                        <a href="tren/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="tren/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Acevedo Casino -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-crown"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">03</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Acevedo Casino</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Gestión de mesas, slots y finanzas en tiempo
-                        real.</p>
-                    <div class="flex gap-3">
-                        <a href="acevedo-casino/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="acevedo-casino/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Batalla Naval -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-ship"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">04</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Batalla Naval</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Juego multijugador clásico sincronizado vía
-                        MQTT.</p>
-                    <div class="flex gap-3">
-                        <a href="valenzuela/game.html"
-                            class="btn-minimal w-full py-2 text-center rounded-lg text-sm font-medium">Jugar Ahora</a>
-                    </div>
-                </article>
-
-                <!-- Batalla Oráculo -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-dragon"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">05</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Batalla Oráculo</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Juego de cartas RPG estratégico con combate en
-                        tiempo real.</p>
-                    <div class="flex gap-3">
-                        <a href="card/game.html"
-                            class="btn-minimal w-full py-2 text-center rounded-lg text-sm font-medium">Jugar Ahora</a>
-                    </div>
-                </article>
-
-                <!-- Estación Mascotas -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-paw"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">06</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Estación Mascotas</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Dispensador automático y monitoreo de salud
-                        animal.</p>
-                    <div class="flex gap-3">
-                        <a href="cristobal/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="cristobal/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-
-                <!-- Arismendi Station -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-parking"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">07</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Arismendi Station</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Gestión de estacionamiento y seguridad
-                        vehicular.</p>
-                    <div class="flex gap-3">
-                        <a href="arismendi-station/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="arismendi-station/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Cyber Monitor -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-desktop"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">08</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Cyber Monitor</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Control de tiempo y acceso para salas de
-                        computación.</p>
-                    <div class="flex gap-3">
-                        <a href="cyber/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="cyber/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Delivery System -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-motorcycle"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">09</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Delivery System</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Rastreo de pedidos y gestión de repartidores.
-                    </p>
-                    <div class="flex gap-3">
-                        <a href="delivery/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="delivery/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Duran Project -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">10</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Duran Project</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Sistema personalizado de monitoreo y control.
-                    </p>
-                    <div class="flex gap-3">
-                        <a href="duran/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="duran/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- IONU -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">11</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">IONU</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Monitoreo institucional integral.</p>
-                    <div class="flex gap-3">
-                        <a href="ionu/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="ionu/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- Leonel Health -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">12</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Leonel Health</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Monitoreo de pacientes y signos vitales.</p>
-                    <div class="flex gap-3">
-                        <a href="leonel/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="leonel/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
-                <!-- SmartPost (Oscar) -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">13</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">SmartPost (Oscar)</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Buzón inteligente con notificaciones en tiempo
-                        real.</p>
-                    <div class="flex gap-3">
-                        <a href="oscar/readme.md"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Info</a>
-                    </div>
-                </article>
-
-                <!-- Salgado Store -->
-                <article class="project-card bg-white p-8 rounded-2xl group">
-                    <div class="flex justify-between items-start mb-6">
-                        <div
-                            class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl group-hover:bg-black group-hover:text-white transition-colors">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <span class="text-xs font-mono text-gray-400">14</span>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-3">Salgado Store</h3>
-                    <p class="text-gray-500 mb-8 text-sm leading-relaxed">Sistema inteligente para gestión de tiendas.
-                    </p>
-                    <div class="flex gap-3">
-                        <a href="salgado/control.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Control</a>
-                        <a href="salgado/dashboard.html"
-                            class="btn-minimal flex-1 py-2 text-center rounded-lg text-sm font-medium">Dash</a>
-                    </div>
-                </article>
-
+    <main class="container">
+        <section id="proyectos" aria-labelledby="proyectos-titulo">
+            <div class="section-heading">
+                <h2 id="proyectos-titulo">Proyectos IoT</h2>
+                <a href="projects_index.html">Explorar ideas de proyectos</a>
             </div>
-
-            <!-- Catalog Banner -->
-            <div class="bg-black text-white rounded-3xl p-12 text-center relative overflow-hidden">
-                <div
-                    class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                </div>
-                <div class="relative z-10">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Catálogo Completo de Ideas</h2>
-                    <p class="text-gray-400 mb-8 max-w-xl mx-auto">Explora nuestra biblioteca con más de 80 prototipos
-                        funcionales listos para desplegar.</p>
-                    <a href="projects_index.html"
-                        class="inline-block bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-200 transition transform hover:scale-105">
-                        Ver los 80 Proyectos <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
+            <div class="project-grid">
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/condominio.webp" alt="Edificios con paneles solares y un portón de acceso" width="720" height="405">
+                    <div class="card-content">
+                        <h3>Condominio inteligente</h3>
+                        <ul class="features">
+                            <li>Iluminación de áreas comunes</li>
+                            <li>Accesos con NFC y alertas perimetrales</li>
+                            <li>Monitoreo de generación solar</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="condominio-inteligente/control.html">Control</a>
+                            <a class="button" href="condominio-inteligente/dashboard.html">Tablero</a>
+                        </div>
+                    </div>
+                </article>
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/domotica.webp" alt="Interior iluminado de una casa conectada" width="720" height="405" loading="lazy">
+                    <div class="card-content">
+                        <h3>Domótica y seguridad del hogar</h3>
+                        <ul class="features">
+                            <li>Control de luces, puerta y temperatura</li>
+                            <li>Alertas de humo, gas y movimiento</li>
+                            <li>Simulación de comandos y estados</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="domotica-hogar/control.html">Control</a>
+                            <a class="button" href="domotica-hogar/dashboard.html">Tablero</a>
+                            <a href="guia.html#domotica-y-seguridad-del-hogar">Guía MQTT</a>
+                            <a href="simulador.html?proyecto=hogar">Simulador</a>
+                        </div>
+                    </div>
+                </article>
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/metro.webp" alt="Tren acercándose a una estación de metro" width="720" height="405" loading="lazy">
+                    <div class="card-content">
+                        <h3>Operación de metro</h3>
+                        <ul class="features">
+                            <li>Velocidad y control de puertas</li>
+                            <li>Freno de emergencia</li>
+                            <li>Alarmas y modos de operación</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="operacion-metro/control.html">Control</a>
+                            <a class="button" href="operacion-metro/dashboard.html">Tablero</a>
+                            <a href="guia.html#operacion-de-metro">Guía MQTT</a>
+                            <a href="simulador.html?proyecto=tren">Simulador</a>
+                        </div>
+                    </div>
+                </article>
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/mascotas.webp" alt="Gato junto a un dispensador de alimento y un bebedero" width="720" height="405" loading="lazy">
+                    <div class="card-content">
+                        <h3>Alimentación y agua para mascotas</h3>
+                        <ul class="features">
+                            <li>Control del dispensador</li>
+                            <li>Niveles de alimento y agua</li>
+                            <li>Alertas de nivel bajo</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="alimentacion-mascotas/control.html">Control</a>
+                            <a class="button" href="alimentacion-mascotas/dashboard.html">Tablero</a>
+                            <a href="guia.html#alimentacion-y-agua-para-mascotas">Guía MQTT</a>
+                        </div>
+                    </div>
+                </article>
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/entregas.webp" alt="Repartidor en moto con una caja de paquetes" width="720" height="405" loading="lazy">
+                    <div class="card-content">
+                        <h3>Seguimiento de entregas</h3>
+                        <ul class="features">
+                            <li>Creación y seguimiento de pedidos</li>
+                            <li>Asignación de repartidores</li>
+                            <li>Estados de entrega en tiempo real</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="seguimiento-entregas/control.html">Control</a>
+                            <a class="button" href="seguimiento-entregas/dashboard.html">Tablero</a>
+                            <a href="guia.html#seguimiento-de-entregas">Guía MQTT</a>
+                        </div>
+                    </div>
+                </article>
+                <article class="project-card">
+                    <img class="cover" src="assets/portada/buzon.webp" alt="Buzón con cartas y la bandera levantada" width="720" height="405" loading="lazy">
+                    <div class="card-content">
+                        <h3>Buzón con aviso de correo</h3>
+                        <ul class="features">
+                            <li>Detección de correspondencia</li>
+                            <li>Indicador de buzón vacío o con correo</li>
+                            <li>Hora del último aviso</li>
+                        </ul>
+                        <div class="card-links">
+                            <a class="button" href="buzon-correo/control.html">Control</a>
+                            <a class="button" href="buzon-correo/dashboard.html">Tablero</a>
+                            <a href="guia.html#buzon-con-aviso-de-correo">Guía MQTT</a>
+                        </div>
+                    </div>
+                </article>
             </div>
-
-        </div>
+        </section>
+        <section id="juegos" aria-labelledby="juegos-titulo">
+            <div class="section-heading"><h2 id="juegos-titulo">Juegos</h2></div>
+            <article class="project-card featured-game">
+                <img class="cover" src="assets/portada/cumbre.webp" alt="Explorador saltando entre plataformas hacia una bandera" width="720" height="405" loading="lazy">
+                <div class="card-content">
+                    <h3>Cumbre</h3>
+                    <p class="game-description">Un juego de plataformas para una persona con un tablero remoto.</p>
+                    <ul class="features">
+                        <li>Saltos entre plataformas y puntos de reaparición</li>
+                        <li>Cinco balizas para recoger y una bandera como meta</li>
+                        <li>Controles y estado de la partida por MQTT</li>
+                    </ul>
+                    <div class="card-links">
+                        <a class="button button-primary" href="cumbre/game.html">Abrir juego</a>
+                        <a class="button" href="cumbre/dashboard.html">Abrir tablero</a>
+                        <a href="guia.html#cumbre">Guía MQTT</a>
+                    </div>
+                </div>
+            </article>
+        </section>
+        <section class="proposals" aria-labelledby="propuestas-titulo">
+            <div class="section-heading"><h2 id="propuestas-titulo">Propuestas de juegos</h2></div>
+            <div class="proposal-grid">
+                <section class="proposal-group">
+                    <h3>Para una persona</h3>
+                    <ul>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/laberinto.webp" alt="Laberinto de piedra con una ficha y una salida verde" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=laberinto">Laberinto contrarreloj</a></h4>
+                                <p>Encuentra la salida antes de que termine el tiempo. El tablero envía direcciones y muestra el tiempo y los intentos.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=laberinto">Jugar a Laberinto contrarreloj</a>
+                            </div>
+                        </li>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/orbita.webp" alt="Nave espacial entre asteroides frente a un planeta anillado" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=orbita">Órbita</a></h4>
+                                <p>Esquiva asteroides con una nave. El tablero controla el giro y el impulso y recibe el combustible y el puntaje.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=orbita">Jugar a Órbita</a>
+                            </div>
+                        </li>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/memoria.webp" alt="Consola con cuatro botones luminosos de colores" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=memoria">Memoria de señales</a></h4>
+                                <p>Repite secuencias de colores cada vez más largas. El tablero envía el color elegido y recibe la ronda y el resultado.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=memoria">Jugar a Memoria de señales</a>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+                <section class="proposal-group">
+                    <h3>Para dos o más personas</h3>
+                    <ul>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/puente.webp" alt="Pasarela de madera con tres tramos sobre un río" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=puente">Puente a dos</a></h4>
+                                <p>Dos personas cooperan. Una mueve al personaje y la otra activa plataformas desde su tablero.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=puente">Jugar a Puente a dos</a>
+                            </div>
+                        </li>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/pong.webp" alt="Mesa verde de tenis de mesa con dos raquetas y una pelota" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=pong">Pong en red</a></h4>
+                                <p>Cada jugador controla una raqueta desde su dispositivo. La sala comparte las posiciones de la pelota y el marcador.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=pong">Jugar a Pong en red</a>
+                            </div>
+                        </li>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/cuatro.webp" alt="Tablero azul de cuatro en línea con fichas amarillas y rojas" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=cuatro">Cuatro en línea</a></h4>
+                                <p>Dos jugadores eligen columnas por turnos. MQTT comparte la jugada, el próximo turno y el resultado.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=cuatro">Jugar a Cuatro en línea</a>
+                            </div>
+                        </li>
+                        <li>
+                            <img class="proposal-cover" src="assets/juegos/carrera.webp" alt="Tres autos recorren un circuito con balizas de color ámbar" width="720" height="405" loading="lazy">
+                            <div>
+                                <h4><a href="propuestas/analisis.html?juego=carrera">Carrera de balizas</a></h4>
+                                <p>De dos a cuatro jugadores recorren un circuito. Cada tablero muestra los puntos de control y la clasificación.</p>
+                                <a class="game-link" href="propuestas/jugar.html?juego=carrera">Jugar a Carrera de balizas</a>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </section>
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-12">
-        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
-            <div class="text-2xl font-bold tracking-tighter mb-4 md:mb-0">
-                IoT<span class="text-gray-400">Hub</span>
-            </div>
-            <div class="text-sm text-gray-400">
-                &copy; 2025 Bemtorres. All rights reserved.
-            </div>
-        </div>
-    </footer>
-
+    <footer><div class="container">Laboratorio MQTT · Bemtorres</div></footer>
 </body>
-
 </html>

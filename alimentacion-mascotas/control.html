@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control | Alimentación y agua para mascotas</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+
+<body data-project="mascotas" data-view="control">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#alimentacion-y-agua-para-mascotas">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Alimentación y agua para mascotas</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html">Tablero</a>
+            <a href="control.html" aria-current="page">Control</a>
+        </nav>
+        <div id="notification" class="notification" role="status"></div>
+        <div class="project-content">
+            <div class="controls-grid">
+                <!-- Dispensador de Comida -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-bowl-food"></i> Dispensador de Comida</h3>
+                    <div class="input-group">
+                        <label for="food-amount">Cantidad (gramos)</label>
+                        <input type="number" id="food-amount" value="50" min="10" max="200">
+                    </div>
+                    <button class="btn btn-primary" onclick="activarDispensador()">
+                        <i class="fa-solid fa-utensils"></i>
+                        Dispensar Comida Ahora
+                    </button>
+                    <div class="info-box">
+                        <i class="fa-solid fa-info-circle"></i>
+                        Dispensa la cantidad seleccionada de comida en el tazón
+                    </div>
+                </div>
+
+                <!-- Nivel de Comida -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-weight-scale"></i> Nivel de Comida</h3>
+                    <div class="input-group">
+                        <label for="food-level">Comida restante (gramos)</label>
+                        <input type="number" id="food-level" value="0" min="0" max="500">
+                    </div>
+                    <button class="btn btn-success" onclick="actualizarComida()">
+                        <i class="fa-solid fa-sync"></i>
+                        Actualizar Nivel
+                    </button>
+                    <button class="btn btn-warning" onclick="resetearComida()">
+                        <i class="fa-solid fa-redo"></i>
+                        Resetear (500g)
+                    </button>
+                </div>
+
+                <!-- Nivel de Agua -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-droplet"></i> Nivel de Agua</h3>
+                    <div class="input-group">
+                        <label for="water-level">Agua restante (ml)</label>
+                        <input type="number" id="water-level" value="0" min="0" max="1000">
+                    </div>
+                    <button class="btn btn-success" onclick="actualizarAgua()">
+                        <i class="fa-solid fa-sync"></i>
+                        Actualizar Nivel
+                    </button>
+                    <button class="btn btn-warning" onclick="resetearAgua()">
+                        <i class="fa-solid fa-redo"></i>
+                        Resetear (1000ml)
+                    </button>
+                </div>
+
+                <!-- Actividad -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-heart-pulse"></i> Actividad del Animal</h3>
+                    <div class="input-group">
+                        <label for="activity-level">Nivel de actividad</label>
+                        <select id="activity-level">
+                            <option value="baja">Baja (Descansando)</option>
+                            <option value="media">Media (Caminando)</option>
+                            <option value="alta">Alta (Jugando)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="actualizarActividad()">
+                        <i class="fa-solid fa-running"></i>
+                        Actualizar Actividad
+                    </button>
+                    <div class="info-box">
+                        Simula el nivel de movimiento detectado
+                    </div>
+                </div>
+
+                <!-- Horario de Alimentación -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-clock"></i> Horario de Alimentación</h3>
+                    <div class="input-group">
+                        <p class="mb-1 text-sm font-medium text-muted">Horas de alimentación</p>
+                        <div class="time-selector">
+                            <input type="time" id="feeding-time-1" aria-label="Primer horario de alimentación" value="08:00">
+                            <input type="time" id="feeding-time-2" aria-label="Segundo horario de alimentación" value="18:00">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="configurarHorario()">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        Guardar Horario
+                    </button>
+                    <div class="info-box">
+                        Configura los horarios automáticos de alimentación
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-bolt"></i> Acciones Rápidas</h3>
+                    <button class="btn btn-success" onclick="rellenarTodo()">
+                        <i class="fa-solid fa-fill"></i>
+                        Rellenar Todo
+                    </button>
+                    <button class="btn btn-warning" onclick="resetearTodo()">
+                        <i class="fa-solid fa-redo-alt"></i>
+                        Resetear Sistema
+                    </button>
+                    <div class="info-box">
+                        Resetea comida a 500g y agua a 1000ml
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_cristobal');
+
+        client.on("connect", () => {
+            console.log("Panel de Control conectado!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            showNotification("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("❌ Error de conexión", "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        function publish(topic, value, description) {
+            if (!client.connected) {
+                showNotification("❌ No conectado a MQTT", "error");
+                return;
+            }
+
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    showNotification(`❌ Error: ${description}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    showNotification(`✅ ${description}`, "success");
+                }
+            });
+        }
+
+        function showNotification(message, type = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        // === FUNCIONES DE CONTROL ===
+
+        function activarDispensador() {
+            const amount = document.getElementById('food-amount').value;
+            if (confirm(`¿Dispensar ${amount}g de comida?`)) {
+                publish("mascotas/cristobal/dispensador/activar", amount, `Dispensando ${amount}g de comida`);
+                publish("mascotas/cristobal/dispensador/estado", "activado", "Dispensador activado");
+            }
+        }
+
+        function actualizarComida() {
+            const level = document.getElementById('food-level').value;
+            publish("mascotas/cristobal/comida/nivel", level, `Nivel de comida actualizado: ${level}g`);
+        }
+
+        function resetearComida() {
+            document.getElementById('food-level').value = 500;
+            publish("mascotas/cristobal/comida/nivel", "500", "Comida reseteada a 500g");
+        }
+
+        function actualizarAgua() {
+            const level = document.getElementById('water-level').value;
+            publish("mascotas/cristobal/agua/nivel", level, `Nivel de agua actualizado: ${level}ml`);
+        }
+
+        function resetearAgua() {
+            document.getElementById('water-level').value = 1000;
+            publish("mascotas/cristobal/agua/nivel", "1000", "Agua reseteada a 1000ml");
+        }
+
+        function actualizarActividad() {
+            const activity = document.getElementById('activity-level').value;
+            publish("mascotas/cristobal/actividad/estado", activity, `Actividad actualizada: ${activity}`);
+        }
+
+        function configurarHorario() {
+            const time1 = document.getElementById('feeding-time-1').value;
+            const time2 = document.getElementById('feeding-time-2').value;
+            const horario = JSON.stringify({ horario1: time1, horario2: time2 });
+            publish("mascotas/cristobal/horario/configurar", horario, `Horarios configurados: ${time1} y ${time2}`);
+            publish("mascotas/cristobal/horario/estado", "configurado", "Horario guardado");
+        }
+
+        function rellenarTodo() {
+            if (confirm('¿Rellenar comida y agua al máximo?')) {
+                resetearComida();
+                resetearAgua();
+                showNotification("✅ Sistema rellenado completamente", "success");
+            }
+        }
+
+        function resetearTodo() {
+            if (confirm('¿Resetear todo el sistema?')) {
+                resetearComida();
+                resetearAgua();
+                document.getElementById('activity-level').value = 'baja';
+                actualizarActividad();
+                showNotification("✅ Sistema reseteado", "success");
+            }
+        }
+    </script>
+</body>
+
+</html>

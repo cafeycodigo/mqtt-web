@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbf5e5">
+    <title>Cumbre | Tablero de control</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="connection.js"></script>
+    <script defer src="dashboard.js"></script>
+</head>
+<body>
+    <nav class="shell"><a href="../index.html">← Laboratorio MQTT</a><a data-peer href="game.html" target="_blank" rel="noopener">Abrir juego ↗</a></nav>
+    <main class="shell">
+        <header class="page-header">
+            <div><h1>Control de Cumbre</h1><p>Mantén pulsada una dirección y combínala con el salto.</p></div>
+        </header>
+        <div class="console">
+            <section class="controls" aria-labelledby="control-heading">
+                <div class="console-head"><h2 id="control-heading">Movimiento</h2><p id="game-status" role="status">Buscando el juego…</p></div>
+                <div class="pad">
+                    <button id="left" class="pad-key" type="button"><span aria-hidden="true">←</span>Izquierda</button>
+                    <button id="right" class="pad-key" type="button"><span aria-hidden="true">→</span>Derecha</button>
+                    <button id="jump" class="pad-key jump" type="button"><span aria-hidden="true">↑</span>Saltar</button>
+                </div>
+                <p class="keys">Teclado <kbd>←</kbd> <kbd>→</kbd> para moverte y <kbd>Espacio</kbd> para saltar.</p>
+            </section>
+            <aside class="run" aria-labelledby="run-heading">
+                <h2 id="run-heading">Partida</h2>
+                <dl class="scoreboard">
+                    <div><dt>Balizas</dt><dd id="gems">—</dd></div>
+                    <div><dt>Caídas</dt><dd id="falls">—</dd></div>
+                </dl>
+                <button id="reset" class="outline" type="button">Reiniciar partida</button>
+            </aside>
+        </div>
+        <section id="connection" aria-label="Conexión"></section>
+    </main>
+</body>
+</html>

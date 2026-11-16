@@ -86,18 +86,6 @@ const mqttConfig = {
     }
   },
 
-  // Cliente para el proyecto Batalla Naval (Valenzuela)
-  client_valenzuela: {
-    url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
-    username: "hivemq.webclient.1764265045956",
-    password: "G6j53rvn$*xA8OS:gL#M",
-    options: {
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000
-    }
-  },
-
   // Cliente para el proyecto Duran (Seguridad de Celular)
   client_duran: {
     url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
@@ -158,18 +146,6 @@ const mqttConfig = {
     }
   },
 
-  // Cliente para el proyecto Card (Batalla del Oráculo)
-  client_card: {
-    url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
-    username: "hivemq.webclient.1764265045956",
-    password: "G6j53rvn$*xA8OS:gL#M",
-    options: {
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000
-    }
-  }
-
   // Puedes agregar más clientes aquí:
   // client_home: {
   //   url: "wss://tu-servidor-mqtt.com:8884/mqtt",
@@ -197,24 +173,3 @@ function createMqttClient(clientName) {
     ...config.options
   });
 }
-
-// Crear instancias de clientes (opcional, para compatibilidad)
-const client_hogar = createMqttClient('client_hogar');
-const client_tren = createMqttClient('client_tren');
-const client_delivery = createMqttClient('client_delivery');
-const client_ionu = createMqttClient('client_ionu');
-const client_arismendi = createMqttClient('client_arismendi');
-const client_cyber = createMqttClient('client_cyber');
-const client_oscar = createMqttClient('client_oscar');
-const client_valenzuela = createMqttClient('client_valenzuela');
-const client_duran = createMqttClient('client_duran');
-const client_acevedo = createMqttClient('client_acevedo');
-const client_cristobal = createMqttClient('client_cristobal');
-const client_salgado = createMqttClient('client_salgado');
-const client_leonel = createMqttClient('client_leonel');
-const client_card = createMqttClient('client_card');
-
-
-
-
-

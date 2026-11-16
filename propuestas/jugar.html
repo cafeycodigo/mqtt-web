@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Partida | Laboratorio MQTT</title>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="analisis.css">
+    <link rel="stylesheet" href="jugar.css">
+    <script defer src="../cumbre/connection.js"></script>
+    <script defer src="datos.js"></script>
+    <script defer src="reglas.js"></script>
+    <script defer src="jugar.js"></script>
+</head>
+<body>
+    <header class="wrap top play-nav">
+        <a href="../index.html#propuestas-titulo">← Propuestas de juegos</a>
+        <a id="analysis-link" hidden>Ver análisis 3D</a>
+    </header>
+    <main class="wrap">
+        <header class="intro">
+            <h1 id="title">Partida</h1>
+            <p id="summary"></p>
+        </header>
+        <p id="invalid" hidden>Abre un juego o una invitación válida desde la lista de propuestas.</p>
+        <div id="session" hidden>
+            <div class="play-layout">
+                <section class="play-surface" aria-label="Vista de la partida">
+                    <div class="board-preview">
+                        <img id="game-cover" alt="" width="720" height="405">
+                        <canvas id="board" width="720" height="400" hidden>La vista del juego necesita Canvas.</canvas>
+                    </div>
+                    <p class="readout" id="readout" role="status">Partida sin iniciar</p>
+                </section>
+                <aside class="play-console">
+                    <h2>Tablero de control</h2>
+                    <p id="role"></p>
+                    <form id="start-form" hidden>
+                        <label id="seat-count-label" hidden>Jugadores
+                            <select id="seat-count"><option>2</option><option>3</option><option>4</option></select>
+                        </label>
+                        <button class="action-primary" id="begin" type="submit">Empezar partida</button>
+                    </form>
+                    <label id="seat-label" hidden>Control local
+                        <select id="seat"></select>
+                    </label>
+                    <div class="action-grid" id="actions"></div>
+                    <p class="hint" id="instructions"></p>
+                </aside>
+            </div>
+            <section class="play-network" aria-labelledby="network-title">
+                <h2 id="network-title">Sala MQTT</h2>
+                <p id="network-status" role="status"></p>
+                <p id="room-name"></p>
+                <div id="invites" class="invite-links"></div>
+                <details>
+                    <summary>Ver datos MQTT</summary>
+                    <div class="packets">
+                        <section><h3>Tablero → juego</h3><p><code id="control-topic"></code></p><pre id="last-control">Esperando mensajes…</pre></section>
+                        <section><h3>Juego → tablero</h3><p><code id="game-topic"></code></p><pre id="last-state">Esperando mensajes…</pre></section>
+                    </div>
+                </details>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

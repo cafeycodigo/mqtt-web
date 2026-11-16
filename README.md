@@ -1,309 +1,55 @@
-# 🏗️ Sistema de Control IoT con MQTT
+# Laboratorio MQTT
 
-Sistema modular de control y monitoreo en tiempo real para dispositivos IoT, utilizando el protocolo MQTT para comunicación entre componentes. Incluye proyectos para **Hogar Inteligente** y **Metro/Tren Inteligente**.
+Cinco prácticas de IoT con panel de control, tablero y ejemplos de mensajes MQTT. La interfaz usa HTML, JavaScript y MQTT.js sobre WebSockets seguros.
 
-## 📋 Tabla de Contenidos
+| Proyecto | Qué se practica | Cómo se ejecuta |
+| --- | --- | --- |
+| [Domótica y seguridad del hogar](guia.html#domotica-y-seguridad-del-hogar) | Comandos, confirmación de estado y alertas de sensores | Control, tablero y simulador web |
+| [Operación de metro](guia.html#operacion-de-metro) | Velocidad, puertas y freno de emergencia | Control, tablero y simulador web |
+| [Alimentación y agua para mascotas](guia.html#alimentacion-y-agua-para-mascotas) | Telemetría, umbrales y comandos al dispensador | Control con datos de prueba y tablero |
+| [Seguimiento de entregas](guia.html#seguimiento-de-entregas) | Eventos JSON y ciclo de un pedido por ID | Simulación integrada en el control y tablero |
+| [Buzón con aviso de correo](guia.html#buzon-con-aviso-de-correo) | Evento de detección, estado y marca de tiempo | Simulación integrada en el control y tablero |
 
-- [Descripción General](#descripción-general)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Tecnologías Utilizadas](#tecnologías-utilizadas)
-- [Configuración Inicial](#configuración-inicial)
-- [Proyectos Incluidos](#proyectos-incluidos)
-- [Arquitectura MQTT](#arquitectura-mqtt)
-- [Uso General](#uso-general)
+## Ejecutar el laboratorio
 
----
+1. Configura un broker de laboratorio con WSS y cuentas de prueba en [env/credential.js](env/credential.js). Cada página usa `createMqttClient` con el perfil del proyecto. El control necesita permisos de publicación, el tablero de suscripción y el simulador de ambos.
+2. Inicia el servidor desde la raíz del repositorio con `python -m http.server 8000` y abre [localhost:8000](http://localhost:8000/).
+3. Sigue la [guía de prácticas](guia.html). Cada ejercicio indica el topic, el payload y el resultado que debe verse en el tablero.
 
-## 📖 Descripción General
+Las bibliotecas se descargan desde CDN. Los tableros mantienen sus datos de demostración en memoria y reciben nuevas publicaciones mientras están abiertos. Las carpetas y los topics existentes sirven para integrar otros publicadores MQTT.
 
-Este proyecto implementa un sistema de control y monitoreo IoT basado en MQTT, donde múltiples aplicaciones web se comunican en tiempo real para controlar y monitorear dispositivos. Cada proyecto (Hogar o Tren) consta de:
+El navegador puede leer las credenciales que se sirvan en `env/credential.js`. Usa cuentas de laboratorio con permisos limitados a los topics del ejercicio. Antes de publicar el sitio, revisa el acceso al broker y retira cualquier credencial privada del contenido estático.
 
-- **Panel de Control**: Interfaz para enviar comandos a los dispositivos
-- **Dashboard de Monitoreo**: Visualización en tiempo real del estado de los sensores y dispositivos
-- **Simulador**: Aplicación que simula el comportamiento de los dispositivos físicos
+El [catálogo de ideas](projects_index.html) describe propuestas para futuras prácticas.
 
----
+## Editar las vistas de Control y Tablero
 
-## 📁 Estructura del Proyecto
+Las cinco prácticas comparten [estilos de Tailwind](ui/estilos.css) y [variables de diseño](ui/tokens.css). Edita los archivos HTML en la carpeta de cada proyecto para cambiar su contenido. Después de modificar clases o estilos, compila la hoja local desde la raíz del repositorio.
 
-```
-Doc/
-├── env/
-│   └── credential.js          # Configuración centralizada de clientes MQTT
-├── hogar/
-│   ├── control.html          # Panel de control del hogar
-│   ├── dashboard.html        # Dashboard de monitoreo del hogar
-│   └── INSTRUCCIONES.md      # Instrucciones detalladas del proyecto hogar
-├── tren/
-│   ├── control.html          # Panel de control del metro
-│   ├── dashboard.html        # Dashboard de monitoreo del metro
-│   └── INSTRUCCIONES.md      # Instrucciones detalladas del proyecto tren
-└── README.md                 # Este archivo
+```sh
+npx --yes tailwindcss@3.4.19 -c ui/tailwind.config.cjs -i ui/estilos.css -o ui/tailwind.css --minify
 ```
 
----
+## Cumbre
 
-## 🛠️ Tecnologías Utilizadas
+[Cumbre](cumbre/game.html) se conecta automáticamente al broker público de HiveMQ por MQTT sobre WebSocket seguro. Abre el juego y pulsa **Abrir tablero** para compartir la sala. La [guía de Cumbre](guia.html#cumbre) describe cómo jugar desde otro dispositivo y documenta los mensajes de movimiento y estado.
 
-- **HTML5/CSS3/JavaScript**: Frontend de las aplicaciones
-- **MQTT.js**: Cliente MQTT para navegadores
-- **HiveMQ Cloud**: Broker MQTT (puede cambiarse por cualquier broker MQTT)
-- **WebSockets**: Protocolo de comunicación en tiempo real
+## Ejercicios de juego
 
----
+En la [lista de juegos](index.html#propuestas-titulo), el nombre abre el análisis 3D y **Jugar** abre la partida. Pulsa **Empezar partida** para jugar desde esa pantalla. En juegos de dos o más personas, comparte el enlace del puesto de cada jugador que aparece en **Sala MQTT**. La pantalla anfitriona debe seguir abierta. Para usar otro dispositivo, abre el sitio desde la misma dirección accesible para todos.
 
-## ⚙️ Configuración Inicial
+Cada partida usa dos topics en el broker público de HiveMQ. `juegos/<juego>/<sala>/control` recibe acciones y mandos pulsados. `juegos/<juego>/<sala>/estado` lleva el estado calculado por el anfitrión. Abre **Ver datos MQTT** para observar el JSON en vivo. El anfitrión también admite los controles locales cuando el broker no está disponible.
 
-### 1. Configurar Credenciales MQTT
+## Condominio inteligente
 
-Edita el archivo `env/credential.js` para configurar tus clientes MQTT:
+Inicia el servidor local desde la raíz con `python -m http.server 8000`. Desde la portada abre [Control](condominio-inteligente/control.html) y [Tablero](condominio-inteligente/dashboard.html) en dos pestañas con la misma dirección de servidor. En Control puedes operar el portón y las luces, simular credenciales NFC y RF y revisar alertas. En el Tablero puedes monitorear los accesos, el perímetro, la energía solar y el historial de actividad.
 
-```javascript
-const mqttConfig = {
-  client_hogar: {
-    url: "wss://tu-servidor-mqtt.com:8884/mqtt",
-    username: "tu_usuario",
-    password: "tu_contraseña",
-    options: {
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000
-    }
-  },
-  client_tren: {
-    url: "wss://tu-servidor-mqtt.com:8884/mqtt",
-    username: "tu_usuario",
-    password: "tu_contraseña",
-    options: {
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000
-    }
-  }
-};
-```
+El estado de la demostración se guarda en ese navegador y los cambios aparecen en ambas vistas. El archivo [estado.js](condominio-inteligente/estado.js) contiene las zonas, sectores, credenciales ficticias y las reglas de simulación. Los estilos se compilan con el comando de Tailwind del laboratorio.
 
-### 2. Agregar Nuevos Clientes
+En el Tablero, la **Central de movimientos** reúne el registro actualizado, la maqueta 3D, los accesos, las alertas activas, los estados de entrega de los reportes, la iluminación y la energía solar. Busca por persona, sector o sensor para localizar eventos. En **Alertas activas**, pulsa **Ubicar** para seleccionar la baliza del sector en el mapa.
 
-Para agregar un nuevo cliente MQTT, simplemente añádelo al objeto `mqttConfig`:
+### Enviar reportes de alarma
 
-```javascript
-client_nuevo: {
-  url: "wss://servidor-mqtt.com:8884/mqtt",
-  username: "usuario",
-  password: "contraseña",
-  options: {
-    clean: true,
-    connectTimeout: 4000,
-    reconnectPeriod: 1000
-  }
-}
-```
+En **Control → Reportes**, guarda la URL del sistema que recibirá las alertas. Cada nueva detección de movimiento genera un reporte y envía un `POST` con `Content-Type: application/json`. El cuerpo incluye `id`, `type` (`alarma.perimetral.movimiento`), `detectedAt` en UTC, `sector`, `sensor` y `simulation: true`. El receptor puede deduplicar por `id`, que se conserva al reintentar.
 
-Luego úsalo en tus aplicaciones:
-
-```javascript
-const client = createMqttClient('client_nuevo');
-```
-
----
-
-## 🏠 Proyectos Incluidos
-
-### 1. Sistema de Hogar Inteligente
-
-Sistema completo para controlar y monitorear dispositivos de un hogar inteligente.
-
-**Características:**
-- Control de luces (Living, Cocina, Dormitorio)
-- Control de puertas y ventanas
-- Sistema de alarma
-- Monitoreo de temperatura
-- Sensores de humo, movimiento y gas
-- Control de TV y refrigerador
-
-**Archivos:**
-- `hogar/control.html` - Panel de control
-- `hogar/dashboard.html` - Dashboard de monitoreo
-- `hogar/INSTRUCCIONES.md` - Documentación detallada
-
-**Topics MQTT principales:**
-- `hogar/living/luz/state` - Estado de la luz del living
-- `hogar/cocina/luz/state` - Estado de la luz de la cocina
-- `hogar/puerta/principal/state` - Estado de la puerta principal
-- `hogar/alarma/state` - Estado de la alarma
-- `hogar/clima/temperatura` - Temperatura ambiente
-- `hogar/sensor/humo` - Sensor de humo
-- `hogar/sensor/movimiento` - Sensor de movimiento
-- `hogar/sensor/gas` - Sensor de gas
-
-### 2. Sistema de Metro/Tren Inteligente
-
-Sistema para controlar y monitorear un sistema de transporte público (metro/tren).
-
-**Características:**
-- Control de velocidad del tren
-- Control de puertas del tren
-- Freno de emergencia
-- Monitoreo de capacidad de pasajeros
-- Control de estaciones (luces, alarmas)
-- Sistema de evacuación
-- Modos de operación (Hora Punta, Baja Demanda, Normal)
-
-**Archivos:**
-- `tren/control.html` - Panel de control
-- `tren/dashboard.html` - Dashboard de monitoreo
-- `tren/INSTRUCCIONES.md` - Documentación detallada
-
-**Topics MQTT principales:**
-- `metro/tren1/velocidad` - Velocidad del tren
-- `metro/tren1/ubicacion` - Ubicación del tren
-- `metro/tren1/puertas` - Estado de las puertas
-- `metro/tren1/capacidad` - Capacidad de pasajeros
-- `metro/tren1/freno_emergencia` - Estado del freno de emergencia
-- `metro/estacion1/luces` - Luces de la estación
-- `metro/estacion1/alarma` - Alarma de la estación
-- `metro/sistema/modo` - Modo de operación del sistema
-
-### 3. Sistema de Seguridad de Celular
-
-Sistema de monitoreo y seguridad en tiempo real para dispositivos móviles.
-
-**Características:**
-- Geolocalización en tiempo real
-- Detección de movimiento
-- Botón de pánico
-- Monitoreo de actividad
-- Mapa en vivo de ubicación
-- Historial de ubicaciones
-- Estado de conexión del dispositivo
-
-**Archivos:**
-- `duran/control.html` - Panel de control
-- `duran/dashboard.html` - Dashboard de monitoreo con mapa
-- `duran/INSTRUCCIONES.md` - Documentación detallada
-
-**Topics MQTT principales:**
-- `seguridad/celular/geolocalizacion/set` - Control de GPS
-- `seguridad/celular/ubicacion` - Coordenadas del dispositivo
-- `seguridad/celular/movimiento/set` - Control de detección de movimiento
-- `seguridad/celular/movimiento/estado` - Estado de movimiento
-- `seguridad/celular/panico` - Botón de pánico
-- `seguridad/celular/dispositivo/estado` - Estado de conexión
-- `seguridad/celular/monitoreo/set` - Control de monitoreo
-
----
-
-## 🔌 Arquitectura MQTT
-
-### Conceptos Clave
-
-- **Broker MQTT**: Servidor que gestiona la comunicación entre clientes
-- **Topic**: Canal de comunicación (ej: `hogar/living/luz/state`)
-- **Publisher**: Cliente que envía mensajes a un topic
-- **Subscriber**: Cliente que recibe mensajes de un topic
-- **QoS (Quality of Service)**: Nivel de garantía de entrega (0, 1, 2)
-
-### Flujo de Comunicación
-
-```
-┌─────────────────┐         ┌──────────┐         ┌─────────────────┐
-│  Panel Control  │────────▶│  Broker  │────────▶│    Dashboard     │
-│   (Publisher)   │  MQTT   │   MQTT   │  MQTT   │   (Subscriber)   │
-└─────────────────┘         └──────────┘         └─────────────────┘
-                                      │
-                                      │
-                                      ▼
-                              ┌─────────────────┐
-                              │   Simulador     │
-                              │ (Subscriber/    │
-                              │  Publisher)     │
-                              └─────────────────┘
-```
-
-### Convención de Topics
-
-- **Estado**: `proyecto/dispositivo/estado` (ej: `hogar/living/luz/state`)
-- **Comando**: `proyecto/dispositivo/set` (ej: `hogar/living/luz/set`)
-- **Sensores**: `proyecto/sensor/tipo` (ej: `hogar/sensor/humo`)
-
----
-
-## 🚀 Uso General
-
-### Para cada proyecto (Hogar o Tren):
-
-1. **Abrir el Dashboard de Monitoreo**
-   - Abre `dashboard.html` en tu navegador
-   - Espera a que se conecte al broker MQTT
-   - Verás el estado en tiempo real de todos los dispositivos
-
-2. **Abrir el Panel de Control**
-   - Abre `control.html` en tu navegador
-   - Espera a que se conecte al broker MQTT
-   - Usa los controles para enviar comandos a los dispositivos
-
-3. **Ejecutar el Simulador** (si está disponible)
-   - Ve a la carpeta del proyecto (`hogar/` o `tren/`)
-   - Instala dependencias: `npm install`
-   - Ejecuta: `npm start` o `node simulador.js`
-   - El simulador responderá a los comandos y enviará actualizaciones de estado
-
-### Características Comunes
-
-- **Conexión Automática**: Los clientes se conectan automáticamente al iniciar
-- **Reconexión Automática**: Si se pierde la conexión, se intenta reconectar automáticamente
-- **Notificaciones Visuales**: Feedback inmediato de todas las acciones
-- **Logs en Tiempo Real**: Registro de todos los eventos y mensajes MQTT
-- **Interfaz Responsive**: Funciona en diferentes tamaños de pantalla
-
----
-
-## 📝 Notas Importantes
-
-1. **Seguridad**: Las credenciales están en `env/credential.js`. No subas este archivo a repositorios públicos.
-
-2. **Broker MQTT**: Puedes usar cualquier broker MQTT compatible (HiveMQ, Mosquitto, AWS IoT, etc.). Solo necesitas actualizar la URL en `credential.js`.
-
-3. **WebSockets**: Los clientes usan WebSockets (WSS) para conectarse al broker, lo que permite comunicación desde navegadores web.
-
-4. **QoS**: Los mensajes importantes usan QoS 1 para garantizar la entrega al menos una vez.
-
----
-
-## 🔧 Solución de Problemas
-
-### No se conecta al broker MQTT
-- Verifica las credenciales en `env/credential.js`
-- Asegúrate de que la URL del broker sea correcta
-- Verifica que el broker acepte conexiones WebSocket
-
-### No se reciben mensajes
-- Verifica que el simulador esté ejecutándose
-- Revisa la consola del navegador para ver errores
-- Verifica que los topics coincidan entre publicador y suscriptor
-
-### Errores de CORS
-- Asegúrate de que el broker MQTT permita conexiones desde tu dominio
-- Algunos brokers requieren configuración específica para WebSockets
-
----
-
-## 📚 Documentación Adicional
-
-- [Instrucciones del Proyecto Hogar](hogar/INSTRUCCIONES.md)
-- [Instrucciones del Proyecto Tren](tren/INSTRUCCIONES.md)
-- [Instrucciones del Proyecto Seguridad de Celular](duran/INSTRUCCIONES.md)
-
----
-
-## 👨‍💻 Autor
-
-Sistema desarrollado para control y monitoreo IoT mediante MQTT.
-
----
-
-## 📄 Licencia
-
-Este proyecto es de uso educativo y demostrativo.
-
+Una respuesta HTTP 2xx se muestra como **Aceptado**. Si el receptor está en otro origen, debe permitir el origen del panel mediante CORS y aceptar la solicitud previa `OPTIONS` para `POST` con el encabezado `Content-Type`. En Control puedes enviar reportes pendientes y reintentar los que fallaron. El Tablero muestra el estado de cada entrega en **Reportes de alarma** y los resultados en **Movimientos y eventos**.

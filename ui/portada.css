@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 1rem/1.55 var(--font-body); }
+.container { width: min(calc(100% - 2rem), 72rem); margin-inline: auto; }
+a { color: inherit; text-underline-offset: .2em; }
+a:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 4px; }
+h1, h2, h3, h4, p { margin: 0; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.08; text-wrap: balance; }
+
+.masthead { background: var(--color-soft); border-bottom: 1px solid var(--color-line); }
+.masthead .container { padding-bottom: clamp(1.8rem, 5vw, 4rem); }
+.masthead nav { display: flex; flex-wrap: wrap; gap: .45rem 1.4rem; padding-block: 1rem; border-bottom: 1px solid var(--color-line); font-weight: 700; }
+.masthead h1 { margin-block: 1.6rem .55rem; font-size: clamp(2.75rem, 8vw, 6.25rem); letter-spacing: -.075em; }
+.masthead p { color: var(--color-muted); font-size: clamp(1rem, 2.5vw, 1.2rem); }
+main > section { margin-block: clamp(2.25rem, 6vw, 4.5rem); }
+.section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; margin-bottom: 1rem; }
+.section-heading h2 { font-size: clamp(1.65rem, 4vw, 2.65rem); letter-spacing: -.045em; }
+.section-heading a { font-size: .9rem; font-weight: 700; }
+
+.project-grid, .proposal-grid { display: grid; gap: clamp(.9rem, 2vw, 1.5rem); }
+.project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.project-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--color-line); border-radius: .85rem; background: var(--color-surface); }
+.cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: var(--color-soft); }
+.card-content { flex: 1; display: flex; flex-direction: column; padding: clamp(1rem, 3vw, 1.45rem); }
+.card-content h3 { font-size: 1.35rem; letter-spacing: -.028em; }
+.features { margin: .65rem 0 1rem; padding-inline-start: 1.15em; color: var(--color-muted); }
+.features li + li { margin-top: .2rem; }
+.card-links { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .75rem; margin-top: auto; font-size: .88rem; font-weight: 700; }
+.button { min-height: 2.55rem; display: inline-grid; place-items: center; padding: .37rem .7rem; border: 1px solid var(--color-line); border-radius: .4rem; text-decoration: none; }
+.button:hover { border-color: var(--color-ink); }
+.button-primary { background: var(--color-soft); border-color: var(--color-soft); }
+
+.featured-game { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); }
+.featured-game .cover { height: 100%; }
+.featured-game .card-content { padding: clamp(1.15rem, 4vw, 2.15rem); }
+.featured-game h3 { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.055em; }
+.game-description { margin-top: .35rem; }
+
+.proposal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--color-line); }
+.proposal-group { padding-top: 1.1rem; }
+.proposal-group h3 { font-size: 1.27rem; }
+.proposal-group ul { list-style: none; margin: .7rem 0 0; padding: 0; }
+.proposal-group li { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); gap: .85rem; align-items: start; padding-block: .85rem; border-bottom: 1px solid var(--color-line); }
+.proposal-cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: .4rem; background: var(--color-soft); }
+.proposal-group p { color: var(--color-muted); }
+.game-link { display: inline-block; margin-top: .4rem; color: var(--color-accent); font-weight: 700; font-size: .9rem; }
+footer { padding-block: 1.4rem; border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: .9rem; }
+
+@media (max-width: 870px) {
+    .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 580px) {
+    .project-grid, .featured-game, .proposal-grid { grid-template-columns: 1fr; }
+    .featured-game .cover { height: auto; }
+    .proposal-group li { grid-template-columns: minmax(0, 1fr); }
+}

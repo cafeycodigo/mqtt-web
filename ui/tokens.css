@@ -1,0 +1,26 @@
+/* Hallmark · dashboard workspace · modern-minimal · deep green */
+:root {
+    --color-paper: oklch(97.6% 0.009 155);
+    --color-surface: oklch(99.5% 0.004 155);
+    --color-ink: oklch(24% 0.026 161);
+    --color-muted: oklch(45% 0.025 158);
+    --color-line: oklch(88% 0.016 156);
+    --color-accent: oklch(38% 0.076 157);
+    --color-on-accent: oklch(99% 0.01 155);
+    --color-soft: oklch(93.7% 0.035 153);
+    --color-warning: oklch(42% 0.09 68);
+    --color-warning-soft: oklch(95% 0.045 85);
+    --color-danger: oklch(44% 0.15 25);
+    --color-danger-soft: oklch(94% 0.038 25);
+    --color-water: oklch(46% 0.09 237);
+    --color-perimeter: oklch(28% 0.046 159);
+    --color-sector: oklch(34% 0.047 159);
+    --color-perimeter-line: oklch(54% 0.057 158);
+    --font-body: Inter, system-ui, sans-serif;
+    --font-display: "Instrument Sans", Inter, system-ui, sans-serif;
+    --radius-panel: 0.75rem;
+    --primary: var(--color-accent);
+    --secondary: var(--color-water);
+    --success: var(--color-accent);
+    --danger: var(--color-danger);
+}

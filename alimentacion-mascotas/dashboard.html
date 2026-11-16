@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero | Alimentación y agua para mascotas</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+
+<body data-project="mascotas" data-view="tablero">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#alimentacion-y-agua-para-mascotas">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Alimentación y agua para mascotas</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html" aria-current="page">Tablero</a>
+            <a href="control.html">Control</a>
+        </nav>
+        <div class="project-content">
+            <div class="dashboard-grid">
+                <!-- Comida -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fa-solid fa-bowl-food"></i>
+                            Comida
+                        </h2>
+                    </div>
+                    <div class="level-display">
+                        <div class="level-value" id="food-level">0</div>
+                        <div class="level-label">gramos restantes</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-food" id="food-progress" style="width: 0%"></div>
+                    </div>
+                    <p id="food-status" class="reading-note">Esperando datos...
+                    </p>
+                </div>
+
+                <!-- Agua -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fa-solid fa-droplet"></i>
+                            Agua
+                        </h2>
+                    </div>
+                    <div class="level-display">
+                        <div class="level-value" id="water-level">0</div>
+                        <div class="level-label">ml restantes</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-water" id="water-progress" style="width: 0%"></div>
+                    </div>
+                    <p id="water-status" class="reading-note">Esperando datos...
+                    </p>
+                </div>
+
+                <!-- Actividad -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            Actividad
+                        </h2>
+                    </div>
+                    <div class="level-display">
+                        <div class="level-value" id="activity-value">-</div>
+                        <div class="level-label">Nivel de actividad</div>
+                    </div>
+                    <div class="activity-indicator">
+                        <div class="activity-level activity-low" id="activity-low">
+                            <i class="fa-solid fa-bed"></i>
+                            <p>Baja</p>
+                        </div>
+                        <div class="activity-level activity-medium" id="activity-medium">
+                            <i class="fa-solid fa-walking"></i>
+                            <p>Media</p>
+                        </div>
+                        <div class="activity-level activity-high" id="activity-high">
+                            <i class="fa-solid fa-running"></i>
+                            <p>Alta</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfica -->
+                <div class="chart-container">
+                    <h2>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Historial de Consumo (24h)
+                    </h2>
+                    <div class="chart-frame">
+                        <canvas id="consumptionChart" role="img" aria-label="Historial de comida y agua"></canvas>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="logs-container">
+                    <h2>
+                        <i class="fa-solid fa-list"></i>
+                        Eventos recientes
+                    </h2>
+                    <div id="logs"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_cristobal');
+
+        // Estado
+        let petState = {
+            food: 0,
+            water: 0,
+            activity: 'baja',
+            foodHistory: [],
+            waterHistory: [],
+            timeLabels: []
+        };
+
+        // Gráfica
+        const ctx = document.getElementById('consumptionChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Comida (g)',
+                    data: [],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Agua (ml)',
+                    data: [],
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Conexión MQTT
+        client.on("connect", () => {
+            console.log("✅ Dashboard conectado a MQTT!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            addLog("✅ Conectado a MQTT", "success");
+
+            // Suscribirse a topics
+            const topics = [
+                "mascotas/cristobal/comida/nivel",
+                "mascotas/cristobal/agua/nivel",
+                "mascotas/cristobal/actividad/estado",
+                "mascotas/cristobal/dispensador/estado",
+                "mascotas/cristobal/horario/estado",
+                "mascotas/cristobal/#"
+            ];
+
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err) => {
+                        if (!err) {
+                            console.log(`✅ Suscrito a: ${topic}`);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100);
+            });
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`📨 ${topic}: ${msg}`);
+            updateDashboard(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+        });
+
+        function updateDashboard(topic, value) {
+            // Comida
+            if (topic.includes('/comida/nivel')) {
+                const food = parseInt(value);
+                petState.food = food;
+                document.getElementById('food-level').textContent = food;
+                const percentage = (food / 500) * 100; // Máximo 500g
+                document.getElementById('food-progress').style.width = `${percentage}%`;
+
+                if (food < 100) {
+                    document.getElementById('food-status').textContent = '⚠️ Nivel bajo - Rellenar pronto';
+                    document.getElementById('food-status').style.color = 'var(--danger)';
+                    addLog('⚠️ Nivel de comida bajo', 'warning');
+                } else {
+                    document.getElementById('food-status').textContent = '✓ Nivel adecuado';
+                    document.getElementById('food-status').style.color = 'var(--success)';
+                }
+
+                updateChart();
+            }
+
+            // Agua
+            if (topic.includes('/agua/nivel')) {
+                const water = parseInt(value);
+                petState.water = water;
+                document.getElementById('water-level').textContent = water;
+                const percentage = (water / 1000) * 100; // Máximo 1000ml
+                document.getElementById('water-progress').style.width = `${percentage}%`;
+
+                if (water < 200) {
+                    document.getElementById('water-status').textContent = '⚠️ Nivel bajo - Rellenar pronto';
+                    document.getElementById('water-status').style.color = 'var(--danger)';
+                    addLog('⚠️ Nivel de agua bajo', 'warning');
+                } else {
+                    document.getElementById('water-status').textContent = '✓ Nivel adecuado';
+                    document.getElementById('water-status').style.color = 'var(--success)';
+                }
+
+                updateChart();
+            }
+
+            // Actividad
+            if (topic.includes('/actividad/estado')) {
+                petState.activity = value.toLowerCase();
+                document.getElementById('activity-value').textContent = value.toUpperCase();
+
+                // Resetear todos
+                document.getElementById('activity-low').classList.remove('active');
+                document.getElementById('activity-medium').classList.remove('active');
+                document.getElementById('activity-high').classList.remove('active');
+
+                // Activar el correspondiente
+                if (value === 'baja') {
+                    document.getElementById('activity-low').classList.add('active');
+                } else if (value === 'media') {
+                    document.getElementById('activity-medium').classList.add('active');
+                } else if (value === 'alta') {
+                    document.getElementById('activity-high').classList.add('active');
+                }
+            }
+
+            // Dispensador
+            if (topic.includes('/dispensador/estado')) {
+                if (value === 'activado') {
+                    addLog('🍖 Dispensador de comida activado', 'success');
+                }
+            }
+        }
+
+        function updateChart() {
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+            petState.foodHistory.push(petState.food);
+            petState.waterHistory.push(petState.water);
+            petState.timeLabels.push(timeLabel);
+
+            // Limitar a 20 puntos
+            if (petState.foodHistory.length > 20) {
+                petState.foodHistory.shift();
+                petState.waterHistory.shift();
+                petState.timeLabels.shift();
+            }
+
+            chart.data.labels = petState.timeLabels;
+            chart.data.datasets[0].data = petState.foodHistory;
+            chart.data.datasets[1].data = petState.waterHistory;
+            chart.update();
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+
+            while (logsContainer.children.length > 30) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+    </script>
+</body>
+
+</html>

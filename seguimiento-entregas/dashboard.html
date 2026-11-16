@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero | Seguimiento de entregas</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="entregas" data-view="tablero">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#seguimiento-de-entregas">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Seguimiento de entregas</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html" aria-current="page">Tablero</a>
+            <a href="control.html">Control</a>
+        </nav>
+        <div class="project-content">
+
+            <div class="main-grid">
+                <!-- Mapa de Deliveries -->
+                <div class="map-container">
+                    <h2>Mapa de Entregas</h2>
+                    <div class="delivery-map" id="deliveryMap">
+                        <!-- Los puntos de entrega se agregarán dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Panel de Información -->
+                <div class="info-panel">
+                    <!-- Estadísticas -->
+                    <div class="info-card">
+                        <h3>Estadísticas</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Pendientes</div>
+                                <div class="stat-value" id="statPending">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">En Camino</div>
+                                <div class="stat-value" id="statInTransit">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Entregados</div>
+                                <div class="stat-value" id="statDelivered">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Cancelados</div>
+                                <div class="stat-value" id="statCancelled">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Deliveries -->
+                    <div class="info-card">
+                        <h3>Entregas Activas</h3>
+                        <div id="deliveriesList">
+                            <!-- Los deliveries se agregarán dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Estado del Repartidor -->
+                    <div class="info-card">
+                        <h3>Estado del Repartidor</h3>
+                        <div class="delivery-info">
+                            <strong>ID:</strong> <span id="riderId">R-001</span>
+                        </div>
+                        <div class="delivery-info">
+                            <strong>Estado:</strong> <span id="riderStatus">Disponible</span>
+                        </div>
+                        <div class="delivery-info">
+                            <strong>Entregas Hoy:</strong> <span id="riderDeliveries">0</span>
+                        </div>
+                        <div class="delivery-info">
+                            <strong>Ubicación:</strong> <span id="riderLocation">Base</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="logs-container">
+                <h3>Eventos recientes</h3>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_delivery');
+
+        const deliveries = {};
+        const stats = {
+            pending: 0,
+            inTransit: 0,
+            delivered: 0,
+            cancelled: 0
+        };
+
+        const riderState = {
+            id: 'R-001',
+            status: 'disponible',
+            deliveries: 0,
+            location: 'base',
+            position: { x: 10, y: 50 }
+        };
+
+        // Posiciones predefinidas en el mapa (porcentajes)
+        const mapPositions = [
+            { x: 20, y: 30 },   // Punto 1
+            { x: 40, y: 20 },   // Punto 2
+            { x: 60, y: 40 },   // Punto 3
+            { x: 80, y: 30 },   // Punto 4
+            { x: 30, y: 60 },   // Punto 5
+            { x: 70, y: 70 },   // Punto 6
+            { x: 50, y: 80 }    // Punto 7
+        ];
+
+        let positionIndex = 0;
+
+        client.on("connect", () => {
+            console.log("Dashboard de Delivery conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            
+            // Suscribirse a todos los topics
+            const topics = [
+                "delivery/order/new",
+                "delivery/order/status",
+                "delivery/order/location",
+                "delivery/rider/status",
+                "delivery/rider/location",
+                "delivery/rider/assign"
+            ];
+            
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err, granted) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic} - ${err.message}`, "error");
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`, granted);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100);
+            });
+            
+            // Wildcard para capturar todos los mensajes
+            setTimeout(() => {
+                client.subscribe("delivery/#", { qos: 1 }, (err) => {
+                    if (!err) {
+                        console.log("✅ Suscrito a wildcard: delivery/#");
+                        addLog("✅ Wildcard: delivery/#", "success");
+                    }
+                });
+            }, topics.length * 100 + 200);
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            console.log("Cliente desconectado");
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("reconnect", () => {
+            console.log("Reconectando...");
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            addLog("🔄 Intentando reconectar...", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`Mensaje recibido: ${topic} = ${msg}`);
+            
+            updateDelivery(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+        });
+
+        function updateDelivery(topic, value) {
+            if (topic === "delivery/order/new") {
+                // Nuevo pedido
+                const order = JSON.parse(value);
+                addDelivery(order);
+            } else if (topic === "delivery/order/status") {
+                // Cambio de estado de pedido
+                const data = JSON.parse(value);
+                updateDeliveryStatus(data.orderId, data.status);
+            } else if (topic === "delivery/order/location") {
+                // Ubicación de pedido
+                const data = JSON.parse(value);
+                updateDeliveryLocation(data.orderId, data.location);
+            } else if (topic === "delivery/rider/status") {
+                // Estado del repartidor
+                const data = JSON.parse(value);
+                updateRiderStatus(data);
+            } else if (topic === "delivery/rider/location") {
+                // Ubicación del repartidor
+                const data = JSON.parse(value);
+                updateRiderLocation(data);
+            } else if (topic === "delivery/rider/assign") {
+                // Asignación de pedido a repartidor
+                const data = JSON.parse(value);
+                assignDeliveryToRider(data.orderId, data.riderId);
+            }
+        }
+
+        function addDelivery(order) {
+            deliveries[order.id] = {
+                id: order.id,
+                address: order.address || 'Dirección no especificada',
+                status: 'pending',
+                location: order.location || mapPositions[positionIndex % mapPositions.length],
+                customer: order.customer || 'Cliente',
+                items: order.items || 'Pedido',
+                createdAt: new Date().toLocaleTimeString()
+            };
+            positionIndex++;
+            updateStats();
+            renderDeliveries();
+            addLog(`📦 Nuevo pedido: ${order.id}`, "success");
+        }
+
+        function updateDeliveryStatus(orderId, status) {
+            if (deliveries[orderId]) {
+                deliveries[orderId].status = status;
+                updateStats();
+                renderDeliveries();
+                addLog(`🔄 Pedido ${orderId}: ${status}`, "info");
+            }
+        }
+
+        function updateDeliveryLocation(orderId, location) {
+            if (deliveries[orderId]) {
+                deliveries[orderId].location = location;
+                renderDeliveries();
+            }
+        }
+
+        function updateRiderStatus(data) {
+            riderState.status = data.status || riderState.status;
+            riderState.deliveries = data.deliveries || riderState.deliveries;
+            updateRiderUI();
+        }
+
+        function updateRiderLocation(data) {
+            if (data.x !== undefined && data.y !== undefined) {
+                riderState.position = { x: data.x, y: data.y };
+            }
+            riderState.location = data.location || riderState.location;
+            updateRiderUI();
+            renderRider();
+        }
+
+        function assignDeliveryToRider(orderId, riderId) {
+            if (deliveries[orderId]) {
+                deliveries[orderId].status = 'in-transit';
+                deliveries[orderId].riderId = riderId;
+                updateStats();
+                renderDeliveries();
+                addLog(`🚴 Pedido ${orderId} asignado a ${riderId}`, "success");
+            }
+        }
+
+        function updateStats() {
+            stats.pending = 0;
+            stats.inTransit = 0;
+            stats.delivered = 0;
+            stats.cancelled = 0;
+
+            Object.values(deliveries).forEach(delivery => {
+                if (delivery.status === 'pending') stats.pending++;
+                else if (delivery.status === 'in-transit') stats.inTransit++;
+                else if (delivery.status === 'delivered') stats.delivered++;
+                else if (delivery.status === 'cancelled') stats.cancelled++;
+            });
+
+            document.getElementById("statPending").textContent = stats.pending;
+            document.getElementById("statInTransit").textContent = stats.inTransit;
+            document.getElementById("statDelivered").textContent = stats.delivered;
+            document.getElementById("statCancelled").textContent = stats.cancelled;
+        }
+
+        function renderDeliveries() {
+            const map = document.getElementById("deliveryMap");
+            const list = document.getElementById("deliveriesList");
+            
+            // Limpiar mapa (excepto el repartidor)
+            const existingPoints = map.querySelectorAll('.delivery-point');
+            existingPoints.forEach(point => point.remove());
+            
+            // Limpiar lista
+            list.innerHTML = '';
+
+            Object.values(deliveries).forEach(delivery => {
+                // Agregar punto en el mapa
+                const point = document.createElement('div');
+                point.className = `delivery-point ${delivery.status}`;
+                point.style.left = `clamp(1rem, ${delivery.location.x}%, calc(100% - 1rem))`;
+                point.style.top = `clamp(1rem, ${delivery.location.y}%, calc(100% - 1rem))`;
+                point.textContent = delivery.id.split('-')[1] || delivery.id;
+                point.title = `Pedido ${delivery.id}\n${delivery.address}\nEstado: ${delivery.status}`;
+                map.appendChild(point);
+
+                // Agregar a la lista
+                const item = document.createElement('div');
+                item.className = `delivery-item ${delivery.status}`;
+                item.innerHTML = `
+                    <div class="delivery-header">
+                        <span class="delivery-id">📦 ${delivery.id}</span>
+                        <span class="delivery-status status-${delivery.status.replace('-', '')}">${getStatusText(delivery.status)}</span>
+                    </div>
+                    <div class="delivery-info">📍 ${delivery.address}</div>
+                    <div class="delivery-info">👤 ${delivery.customer}</div>
+                    <div class="delivery-info">🕐 ${delivery.createdAt}</div>
+                `;
+                list.appendChild(item);
+            });
+
+            // Renderizar repartidor
+            renderRider();
+        }
+
+        function renderRider() {
+            let rider = document.getElementById('rider');
+            if (!rider) {
+                rider = document.createElement('div');
+                rider.id = 'rider';
+                rider.className = 'delivery-rider';
+                rider.textContent = '🚴';
+                document.getElementById("deliveryMap").appendChild(rider);
+            }
+            rider.style.left = `clamp(1rem, ${riderState.position.x}%, calc(100% - 1rem))`;
+            rider.style.top = `clamp(1rem, ${riderState.position.y}%, calc(100% - 1rem))`;
+        }
+
+        function updateRiderUI() {
+            document.getElementById("riderId").textContent = riderState.id;
+            document.getElementById("riderStatus").textContent = getRiderStatusText(riderState.status);
+            document.getElementById("riderDeliveries").textContent = riderState.deliveries;
+            document.getElementById("riderLocation").textContent = riderState.location;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pendiente',
+                'in-transit': 'En Camino',
+                'delivered': 'Entregado',
+                'cancelled': 'Cancelado'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getRiderStatusText(status) {
+            const statusMap = {
+                'disponible': 'Disponible',
+                'ocupado': 'Ocupado',
+                'en-camino': 'En Camino',
+                'descanso': 'En Descanso'
+            };
+            return statusMap[status] || status;
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsContainer.children.length > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Inicializar UI
+        updateRiderUI();
+        renderRider();
+    </script>
+</body>
+</html>
+

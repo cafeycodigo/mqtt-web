@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control | Operación de metro</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="stylesheet" href="../ui/tokens.css">
+    <link rel="stylesheet" href="../ui/tailwind.css">
+</head>
+<body data-project="metro" data-view="control">
+    <header class="project-nav">
+        <div>
+            <a href="../index.html"><span class="brand-mark" aria-hidden="true"></span> Laboratorio MQTT</a>
+            <a href="../guia.html#operacion-de-metro">Guía MQTT <span aria-hidden="true">↗</span></a>
+        </div>
+    </header>
+    <main class="project-shell">
+        <div class="project-heading">
+            <h1>Operación de metro</h1>
+            <div id="status" class="status disconnected" aria-live="polite">Desconectado</div>
+        </div>
+        <nav class="project-tabs" aria-label="Vistas del proyecto">
+            <a href="dashboard.html">Tablero</a>
+            <a href="control.html" aria-current="page">Control</a>
+        </nav>
+        <div id="notification" class="notification" role="status"></div>
+        <div class="project-content">
+
+            <!-- Control del Tren -->
+            <div class="section">
+                <h2>Control del Tren</h2>
+                <div class="controls-grid">
+                    <button class="btn btn-start" onclick="iniciarRecorrido()">Iniciar Recorrido</button>
+                    <button class="btn btn-stop" onclick="detenerTren()">Detener Tren</button>
+                    <button class="btn btn-open" onclick="abrirPuertas()">Abrir Puertas</button>
+                    <button class="btn btn-close" onclick="cerrarPuertas()">Cerrar Puertas</button>
+                    <button class="btn btn-emergency" onclick="frenoEmergencia()">Freno de Emergencia</button>
+                </div>
+                <div class="slider-container">
+                    <label for="velocidadSlider">Velocidad (km/h)</label>
+                    <input type="range" min="0" max="80" value="0" class="slider" id="velocidadSlider" oninput="updateVelocidad(this.value)">
+                    <div class="slider-value" id="velocidadValue">0 km/h</div>
+                    <button class="btn btn-start" onclick="setVelocidad()">Establecer Velocidad</button>
+                </div>
+            </div>
+
+            <!-- Control de Estación -->
+            <div class="section">
+                <h2>Control de Estación</h2>
+                <div class="controls-grid">
+                    <button class="btn btn-start" onclick="controlLuces('on')">Encender Luces</button>
+                    <button class="btn btn-stop" onclick="controlLuces('off')">Apagar Luces</button>
+                    <button class="btn btn-start" onclick="anunciarLlegada()">Anunciar Llegada</button>
+                    <button class="btn btn-event" onclick="evacuacion()">Iniciar Evacuación</button>
+                    <button class="btn btn-event" onclick="alarmaIncendio()">Alarma de Incendio</button>
+                    <button class="btn btn-event" onclick="altaCongestion()">Alta Congestión</button>
+                </div>
+            </div>
+
+            <!-- Operaciones del Sistema -->
+            <div class="section">
+                <h2>Operaciones del Sistema</h2>
+                <div class="controls-grid">
+                    <select class="select-control" id="modoSistema" aria-label="Modo del sistema">
+                        <option value="">Seleccionar modo...</option>
+                        <option value="hora_punta">Modo Hora Punta</option>
+                        <option value="baja_demanda">Modo Baja Demanda</option>
+                        <option value="normal">Modo Normal</option>
+                    </select>
+                    <button class="btn btn-mode" onclick="cambiarModo()">Cambiar Modo</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_tren');
+
+        client.on("connect", () => {
+            console.log("Panel de Control del Metro conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = "notification show " + tipo;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, value, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        // Control del Tren
+        function iniciarRecorrido() {
+            publicarConConfirmacion("metro/tren1/velocidad/set", "40", "Iniciando recorrido");
+        }
+
+        function detenerTren() {
+            publicarConConfirmacion("metro/tren1/velocidad/set", "0", "Deteniendo tren");
+        }
+
+        function abrirPuertas() {
+            publicarConConfirmacion("metro/tren1/puertas/set", "open", "Abriendo puertas");
+        }
+
+        function cerrarPuertas() {
+            publicarConConfirmacion("metro/tren1/puertas/set", "close", "Cerrando puertas");
+        }
+
+        function frenoEmergencia() {
+            publicarConConfirmacion("metro/tren1/freno_emergencia/set", "on", "Activando freno de emergencia");
+        }
+
+        function updateVelocidad(value) {
+            document.getElementById("velocidadValue").textContent = value + " km/h";
+        }
+
+        function setVelocidad() {
+            const velocidad = document.getElementById("velocidadSlider").value;
+            publicarConConfirmacion("metro/tren1/velocidad/set", velocidad, `Velocidad establecida a ${velocidad} km/h`);
+        }
+
+        // Control de Estación
+        function controlLuces(state) {
+            const accion = state === 'on' ? 'Encendiendo luces' : 'Apagando luces';
+            publicarConConfirmacion("metro/estacion1/luces/set", state, accion);
+        }
+
+        function anunciarLlegada() {
+            publicarConConfirmacion("metro/estacion1/anuncio/set", "llegada", "Anunciando llegada");
+        }
+
+        function evacuacion() {
+            publicarConConfirmacion("metro/estacion1/evacuacion/set", "start", "Iniciando evacuación");
+        }
+
+        function alarmaIncendio() {
+            publicarConConfirmacion("metro/estacion1/alarma/set", "incendio", "Activando alarma de incendio");
+        }
+
+        function altaCongestion() {
+            publicarConConfirmacion("metro/estacion1/congestion/set", "alta", "Alerta: Alta congestión");
+        }
+
+        // Operaciones del Sistema
+        function cambiarModo() {
+            const modo = document.getElementById("modoSistema").value;
+            if (modo) {
+                const modoText = {
+                    'hora_punta': 'Hora Punta',
+                    'baja_demanda': 'Baja Demanda',
+                    'normal': 'Normal'
+                };
+                publicarConConfirmacion("metro/sistema/modo/set", modo, `Modo cambiado a: ${modoText[modo] || modo}`);
+                document.getElementById("modoSistema").value = "";
+            } else {
+                mostrarNotificacion("⚠️ Selecciona un modo primero", "error");
+            }
+        }
+    </script>
+</body>
+</html>
+
